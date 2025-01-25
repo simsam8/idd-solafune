@@ -7,10 +7,12 @@ requires-python = ">=3.11"
 dependencies = [
     "bokeh>=3.6.2",
     "dask[distributed]>=2024.2.1",
+    "imagecodecs>=2024.12.30",
     "jupyterlab>=4.3.4",
     "lightning>=2.5.0.post0",
     "matplotlib>=3.10.0",
     "solafune-tools>=0.5.3",
+    "tifffile>=2025.1.10",
 ]
 
 [project.optional-dependencies]
