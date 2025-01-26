@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "albumentations>=2.0.1",
     "bokeh>=3.6.2",
     "dask[distributed]>=2024.2.1",
     "imagecodecs>=2024.12.30",
@@ -12,7 +13,11 @@ dependencies = [
     "lightning>=2.5.0.post0",
     "matplotlib>=3.10.0",
     "opencv-python>=4.11.0.86",
+    "scikit-image>=0.24.0",
+    "scikit-learn>=1.6.1",
+    "segmentation-models-pytorch>=0.4.0",
     "solafune-tools>=0.5.3",
+    "tensorboard>=2.18.0",
     "tifffile>=2025.1.10",
 ]
 
