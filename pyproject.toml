@@ -11,6 +11,7 @@ dependencies = [
     "jupyterlab>=4.3.4",
     "lightning>=2.5.0.post0",
     "matplotlib>=3.10.0",
+    "opencv-python>=4.11.0.86",
     "solafune-tools>=0.5.3",
     "tifffile>=2025.1.10",
 ]
