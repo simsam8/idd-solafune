@@ -11,7 +11,7 @@ from ray.tune.schedulers import ASHAScheduler
 from datasets import IDDDataModule
 from Models import Model
 
-seed_everything(42)
+# seed_everything(42)
 
 
 augmentations = albu.Compose(
@@ -70,7 +70,8 @@ def train_idd_tune(config, num_epochs, data_dir: Path, log_dir: Path):
                     "val/loss": "val/loss",
                     "val/f1": "val/f1",
                 },
-                filename="ray_ckpt",
+                filename="checkpoint.ckpt",
+                on="validation_end",
             )
         ],
     )
@@ -87,7 +88,8 @@ def tune_idd_asha(
         "weight_decay": tune.uniform(1e-2, 1e-5),
         "num_workers": tune.choice([10]),
     }
-    scheduler = ASHAScheduler(max_t=num_epochs, grace_period=3, reduction_factor=2)
+    # TODO: Tweak grace_period and reduction_factor when tuning
+    scheduler = ASHAScheduler(max_t=num_epochs, grace_period=2, reduction_factor=2)
     reporter = tune.CLIReporter(
         parameter_columns=["batch_size", "lr", "weight_decay"],
         metric_columns=["train/loss", "val/loss", "train/f1", "val/f1"],
@@ -111,23 +113,36 @@ def tune_idd_asha(
             name="tune_idd_asha",
             progress_reporter=reporter,
             storage_path=str(log_dir),
-            # checkpoint_config=train.CheckpointConfig(
-            #     # num_to_keep=1,
-            #     checkpoint_score_attribute="val/f1",
-            #     checkpoint_score_order="max",
-            # )
+            checkpoint_config=train.CheckpointConfig(
+                num_to_keep=1,
+                checkpoint_score_attribute="val/f1",
+                checkpoint_score_order="max",
+            ),
         ),
         param_space=config,
     )
     result = tuner.fit()
+    if num_epochs >= 10:
+        best_result = result.get_best_result(scope="last-10-avg")
+    else:
+        best_result = result.get_best_result(scope="last")
     print(
         "Best hypeparameters found were: ",
-        result.get_best_result(metric="val/f1", mode="max").config,
+        best_result.config,
     )
+    return best_result.get_best_checkpoint(metric="val/f1", mode="max")
 
 
 if __name__ == "__main__":
     data_path = Path("data/").absolute()
     log_dir = Path("logs/").absolute()
-    tune_idd_asha(data_path, log_dir, 4, 10, 0.5)
-    # train_idd_no_tune()
+    best_checkpoint = tune_idd_asha(data_path, log_dir, 4, 5, 0.5)
+
+    cp = (
+        (Path(best_checkpoint.path) / "checkpoint.ckpt")
+        .resolve()
+        .relative_to(Path("./").resolve())
+    )
+    print(cp)
+    with open("models/best_trials.txt", "a") as f:
+        f.writelines(str(cp))
