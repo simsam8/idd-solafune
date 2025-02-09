@@ -9,8 +9,6 @@ class Model(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
 
-        # self.data_dir = data_dir or os.getcwd()
-
         self.lr = config["lr"]
         self.weight_decay = config["weight_decay"]
         self.batch_size = config["batch_size"]
