@@ -1,9 +1,8 @@
 import numpy as np
-import pytorch_lightning as pl
+import lightning as pl
 import sklearn
 import tifffile
 import torch
-from filelock import FileLock
 from torch.utils.data import DataLoader
 
 
@@ -131,18 +130,20 @@ class IDDDataModule(pl.LightningDataModule):
         self.augmentations = augmentations
 
     def setup(self, stage=None) -> None:
-        with FileLock(f"{self.data_dir}.lock"):
+        if stage == "fit":
             sample_indices = list(range(176))  # train_0.tif to train_175.tif
             train_indices, val_indices = sklearn.model_selection.train_test_split(
                 sample_indices, test_size=0.2, random_state=42
             )
 
             self.idd_train = TrainValDataset(
-                self.data_dir, sample_indices, augmentations=self.augmentations
+                self.data_dir, train_indices, augmentations=self.augmentations
             )
             self.idd_val = TrainValDataset(
                 self.data_dir, val_indices, augmentations=None
             )
+
+        if stage == "test":
             self.idd_test = TestDataset(self.data_dir)
 
     def train_dataloader(self):
