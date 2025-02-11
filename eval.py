@@ -12,7 +12,7 @@ from skimage import measure
 from tqdm import tqdm
 
 from datasets import TestDataset, TrainValDataset
-from Models import Model
+from utils import load_model
 
 data_root = Path("./data")
 
@@ -57,26 +57,8 @@ def run_inference(model, loader, pred_output_dir):
             )
 
 
-def load_model(checkpoint_path):
-
-    params_path = checkpoint_path.parent.parent / "params.json"
-    with open(params_path, "r") as f:
-        config = json.load(f)
-
-    print(config)
-    model: Model = Model.load_from_checkpoint(checkpoint_path, config=config)
-    return model
-
-
-# model = Model()
-# model.load_state_dict(torch.load(train_output_dir / "best_f1_05.ckpt")["state_dict"])
-
-# TODO: Change this to read saved model from file
-model = load_model(
-    Path(
-        "./logs/tune_idd_asha/train_idd_tune_32bb9_00001_1_batch_size=2,lr=0.0040,num_workers=10,weight_decay=0.0037_2025-02-09_17-59-17/checkpoint_000000/checkpoint.ckpt"
-    )
-)
+# TODO: Change to config file later
+model = load_model("./models/7c201_00000_valf1_31.77/")
 model = model.cuda()
 model.eval()
 
