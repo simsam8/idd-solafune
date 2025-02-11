@@ -10,6 +10,7 @@ from ray.tune.schedulers import ASHAScheduler
 
 from datasets import IDDDataModule
 from Models import Model
+from utils import save_checkpoint
 
 # seed_everything(42)
 
@@ -134,15 +135,10 @@ def tune_idd_asha(
 
 
 if __name__ == "__main__":
+    # Absolute datapaths to work with parallell processes
     data_path = Path("data/").absolute()
     log_dir = Path("logs/").absolute()
-    best_checkpoint = tune_idd_asha(data_path, log_dir, 4, 5, 0.5)
-
-    cp = (
-        (Path(best_checkpoint.path) / "checkpoint.ckpt")
-        .resolve()
-        .relative_to(Path("./").resolve())
-    )
-    print(cp)
-    with open("models/best_trials.txt", "a") as f:
-        f.writelines(str(cp))
+    models_dir = Path("models/")
+    # best_checkpoint = tune_idd_asha(data_path, log_dir, 4, 5, 0.5)
+    best_checkpoint = tune_idd_asha(data_path, log_dir, 2, 2, 0.5)
+    save_checkpoint(best_checkpoint, models_dir)
