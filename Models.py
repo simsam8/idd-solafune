@@ -1,8 +1,6 @@
 import lightning as pl
 import segmentation_models_pytorch as smp
 import torch
-from timm.optim import create_optimizer_v2
-from timm.scheduler.scheduler_factory import create_scheduler_v2
 
 
 class Model(pl.LightningModule):
@@ -15,14 +13,8 @@ class Model(pl.LightningModule):
         self.num_workers = config["num_workers"]
         self.class_names = ["grassland_shrubland", "logging", "mining", "plantation"]
 
-        # prepare segmentation model
-        self.model = smp.create_model(
-            arch="unet",
-            encoder_name="tu-tf_efficientnetv2_s",  # use `tf_efficientnetv2_s` from timm
-            encoder_weights="imagenet",  # always starts from imagenet pre-trained weight
-            in_channels=12,
-            classes=4,
-        )
+        if config["model_type"] == "pt_seg":
+            self.model = smp.create_model(**config["model_params"])
 
         # prepare loss functions
         self.dice_loss_fn = smp.losses.DiceLoss(
@@ -122,39 +114,8 @@ class Model(pl.LightningModule):
         self.validation_step_outputs.clear()
 
     def configure_optimizers(self):
-        # optimizer
-        # optimizer = create_optimizer_v2(
-        #     self.parameters(),
-        #     opt="adamw",
-        #     lr=self.lr,
-        #     weight_decay=self.weight_decay,
-        #     filter_bias_and_bn=True,  # filter out bias and batchnorm from weight decay
-        # )
-        #
-        # # lr scheduler
-        # scheduler, _ = create_scheduler_v2(
-        #     optimizer,
-        #     sched="cosine",
-        #     num_epochs=epochs,
-        #     min_lr=0.0,
-        #     warmup_lr=1e-5,
-        #     warmup_epochs=0,
-        #     warmup_prefix=False,
-        #     step_on_epochs=True,
-        # )
-        #
-        # return {
-        #     "optimizer": optimizer,
-        #     "lr_scheduler": {
-        #         "scheduler": scheduler,
-        #         "interval": "epoch",
-        #     },
-        # }
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
-
-    # def lr_scheduler_step(self, scheduler, metric):
-    #     # workaround for timm's scheduler:
-    #     # https://github.com/Lightning-AI/lightning/issues/5555#issuecomment-1065894281
-    #     scheduler.step(
-    #         epoch=self.current_epoch
-    #     )  # timm's scheduler need the epoch value
+        return torch.optim.Adam(
+            self.parameters(),
+            lr=self.lr,
+            weight_decay=self.weight_decay,
+        )
