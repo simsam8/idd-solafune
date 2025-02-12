@@ -11,6 +11,7 @@ from ray.tune.schedulers import ASHAScheduler
 from datasets import IDDDataModule
 from Models import Model
 from utils import save_checkpoint
+from configs import base_config, deeplab_config
 
 # seed_everything(42)
 
@@ -81,16 +82,20 @@ def train_idd_tune(config, num_epochs, data_dir: Path, log_dir: Path):
 
 
 def tune_idd_asha(
-    data_dir: Path, log_dir: Path, num_samples=10, num_epochs=10, gpus_per_trial=0.0
+    data_dir: Path,
+    log_dir: Path,
+    config: dict,
+    num_samples=10,
+    num_epochs=10,
+    gpus_per_trial=0.0,
+    cpu_per_trial=1,
+    grace_period=10,
+    reduction_factor=2,
 ):
-    config = {
-        "lr": tune.uniform(1e-2, 1e-5),
-        "batch_size": tune.choice([2]),
-        "weight_decay": tune.uniform(1e-2, 1e-5),
-        "num_workers": tune.choice([10]),
-    }
     # TODO: Tweak grace_period and reduction_factor when tuning
-    scheduler = ASHAScheduler(max_t=num_epochs, grace_period=2, reduction_factor=2)
+    scheduler = ASHAScheduler(
+        max_t=num_epochs, grace_period=grace_period, reduction_factor=reduction_factor
+    )
     reporter = tune.CLIReporter(
         parameter_columns=["batch_size", "lr", "weight_decay"],
         metric_columns=["train/loss", "val/loss", "train/f1", "val/f1"],
@@ -100,7 +105,7 @@ def tune_idd_asha(
         train_idd_tune, num_epochs=num_epochs, data_dir=data_dir, log_dir=log_dir
     )
 
-    resources_per_trial = {"cpu": 1, "gpu": gpus_per_trial}
+    resources_per_trial = {"cpu": cpu_per_trial, "gpu": gpus_per_trial}
 
     tuner = tune.Tuner(
         tune.with_resources(train_fn_with_params, resources=resources_per_trial),
@@ -140,5 +145,15 @@ if __name__ == "__main__":
     log_dir = Path("logs/").absolute()
     models_dir = Path("models/")
     # best_checkpoint = tune_idd_asha(data_path, log_dir, 4, 5, 0.5)
-    best_checkpoint = tune_idd_asha(data_path, log_dir, 2, 2, 0.5)
+    best_checkpoint = tune_idd_asha(
+        data_path,
+        log_dir,
+        base_config,
+        num_samples=2,
+        num_epochs=10,
+        gpus_per_trial=0.5,
+        cpu_per_trial=4,
+        grace_period=3,
+        reduction_factor=3,
+    )
     save_checkpoint(best_checkpoint, models_dir)
