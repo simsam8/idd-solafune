@@ -1,12 +1,13 @@
 import lightning as pl
 import segmentation_models_pytorch as smp
 import torch
+import torch.nn as nn
+from transformers import SegformerForSemanticSegmentation
 
 
 class Model(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
-
         self.lr = config["lr"]
         self.weight_decay = config["weight_decay"]
         self.batch_size = config["batch_size"]
@@ -16,7 +17,6 @@ class Model(pl.LightningModule):
         if config["model_type"] == "pt_seg":
             self.model = smp.create_model(**config["model_params"])
 
-        # prepare loss functions
         self.dice_loss_fn = smp.losses.DiceLoss(
             mode=smp.losses.MULTILABEL_MODE, from_logits=True
         )
