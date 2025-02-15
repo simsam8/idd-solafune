@@ -20,6 +20,7 @@ dependencies = [
     "solafune-tools>=0.5.3",
     "tensorboard>=2.18.0",
     "tifffile>=2025.1.10",
+    "transformers>=4.48.3",
 ]
 
 [project.optional-dependencies]
