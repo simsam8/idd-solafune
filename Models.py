@@ -5,27 +5,24 @@ import torch.nn as nn
 from transformers import SegformerForSemanticSegmentation
 
 
-class SegFormer(nn.Module):
-    def __init__(self, *args, **kwargs):
-        self.model = SegformerForSemanticSegmentation.from_pretrained(
-            "nvidia/segformer-b0-finetuned-ade-512-512",
-        )
-        self.model.segformer.encoder.patch_embeddings[0].projection = nn.Conv2d(
-            in_channels=12,
-            out_channels=self.model.config.hidden_sizes[0],
-            kernel_size=7,
-            stride=4,
-            padding=3,
-            bias=False,
-        )
-        self.model.decode_head.classifier = nn.Conv2d(
-            in_channels=self.model.config.decoder_hidden_size,
-            out_channels=4,
-            kernel_size=1,
-        )
-
-    def forward(self, *args, **kwargs):
-        return self.model.forward(*args, **kwargs)
+def seg_former():
+    model = SegformerForSemanticSegmentation.from_pretrained(
+        "nvidia/segformer-b0-finetuned-ade-512-512",
+    )
+    model.segformer.encoder.patch_embeddings[0].projection = nn.Conv2d(
+        in_channels=12,
+        out_channels=model.config.hidden_sizes[0],
+        kernel_size=7,
+        stride=4,
+        padding=3,
+        bias=False,
+    )
+    model.decode_head.classifier = nn.Conv2d(
+        in_channels=model.config.decoder_hidden_size,
+        out_channels=4,
+        kernel_size=1,
+    )
+    return model
 
 
 class Model(pl.LightningModule):
@@ -40,6 +37,8 @@ class Model(pl.LightningModule):
 
         if config["model_type"] == "pt_seg":
             self.model = smp.create_model(**config["model_params"])
+        elif config["model_type"] == "seg_former":
+            self.model = seg_former()
 
         self.dice_loss_fn = smp.losses.DiceLoss(
             mode=smp.losses.MULTILABEL_MODE, from_logits=True
