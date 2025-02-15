@@ -5,9 +5,33 @@ import torch.nn as nn
 from transformers import SegformerForSemanticSegmentation
 
 
+class SegFormer(nn.Module):
+    def __init__(self, *args, **kwargs):
+        self.model = SegformerForSemanticSegmentation.from_pretrained(
+            "nvidia/segformer-b0-finetuned-ade-512-512",
+        )
+        self.model.segformer.encoder.patch_embeddings[0].projection = nn.Conv2d(
+            in_channels=12,
+            out_channels=self.model.config.hidden_sizes[0],
+            kernel_size=7,
+            stride=4,
+            padding=3,
+            bias=False,
+        )
+        self.model.decode_head.classifier = nn.Conv2d(
+            in_channels=self.model.config.decoder_hidden_size,
+            out_channels=4,
+            kernel_size=1,
+        )
+
+    def forward(self, *args, **kwargs):
+        return self.model.forward(*args, **kwargs)
+
+
 class Model(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
+
         self.lr = config["lr"]
         self.weight_decay = config["weight_decay"]
         self.batch_size = config["batch_size"]
