@@ -1,19 +1,22 @@
+from argparse import ArgumentParser
 from pathlib import Path
 
 import albumentations as albu
 import lightning as pl
 from lightning.pytorch import seed_everything
+from lightning.pytorch.callbacks import EarlyStopping
 from lightning.pytorch.loggers import TensorBoardLogger
 from ray import train, tune
 from ray.tune.integration.pytorch_lightning import TuneReportCheckpointCallback
 from ray.tune.schedulers import ASHAScheduler
+from ray.tune.search.optuna import OptunaSearch
 
+import configs
 from datasets import IDDDataModule
 from Models import Model
 from utils import save_checkpoint
-from configs import base_config, deeplab_config
 
-# seed_everything(42)
+seed_everything(367)
 
 
 augmentations = albu.Compose(
@@ -44,15 +47,11 @@ augmentations = albu.Compose(
 )
 
 
-def train_idd(config):
+def pl_trainer(config, data_dir, epochs=10):
     model = Model(config)
-    trainer = pl.Trainer(max_epochs=2, enable_progress_bar=True)
-    trainer.fit(model)
-
-
-def train_idd_no_tune():
-    config = {"batch_size": 4, "lr": 1e-4, "weight_decay": 1e-5, "num_workers": 10}
-    train_idd(config)
+    trainer = pl.Trainer(max_epochs=epochs, enable_progress_bar=True)
+    data_module = IDDDataModule(data_dir, augmentations, config["batch_size"])
+    trainer.fit(model, datamodule=data_module)
 
 
 def train_idd_tune(config, num_epochs, data_dir: Path, log_dir: Path):
@@ -74,11 +73,13 @@ def train_idd_tune(config, num_epochs, data_dir: Path, log_dir: Path):
                 },
                 filename="checkpoint.ckpt",
                 on="validation_end",
-            )
+            ),
+            EarlyStopping(monitor="val/loss", mode="min", patience=7),
         ],
     )
 
     trainer.fit(model, datamodule=data_module)
+    return model, config
 
 
 def tune_idd_asha(
@@ -96,6 +97,7 @@ def tune_idd_asha(
     scheduler = ASHAScheduler(
         max_t=num_epochs, grace_period=grace_period, reduction_factor=reduction_factor
     )
+    # optuna_search = OptunaSearch(metric="val/loss", mode="min")
     reporter = tune.CLIReporter(
         parameter_columns=["batch_size", "lr", "weight_decay"],
         metric_columns=["train/loss", "val/loss", "train/f1", "val/f1"],
@@ -110,9 +112,10 @@ def tune_idd_asha(
     tuner = tune.Tuner(
         tune.with_resources(train_fn_with_params, resources=resources_per_trial),
         tune_config=tune.TuneConfig(
-            metric="val/f1",
-            mode="max",
+            metric="val/loss",
+            mode="min",
             scheduler=scheduler,
+            # search_alg=optuna_search,
             num_samples=num_samples,
         ),
         run_config=train.RunConfig(
@@ -120,40 +123,45 @@ def tune_idd_asha(
             progress_reporter=reporter,
             storage_path=str(log_dir),
             checkpoint_config=train.CheckpointConfig(
-                num_to_keep=1,
-                checkpoint_score_attribute="val/f1",
-                checkpoint_score_order="max",
+                num_to_keep=3,
+                checkpoint_score_attribute="val/loss",
+                checkpoint_score_order="min",
             ),
         ),
         param_space=config,
     )
     result = tuner.fit()
-    if num_epochs >= 10:
-        best_result = result.get_best_result(scope="last-10-avg")
-    else:
-        best_result = result.get_best_result(scope="last")
+    best_result = result.get_best_result(scope="last")
     print(
         "Best hypeparameters found were: ",
         best_result.config,
     )
-    return best_result.get_best_checkpoint(metric="val/f1", mode="max")
+    return best_result.checkpoint
+
+
+def main(args):
+    data_path = Path("data/").absolute()
+    pl_trainer(getattr(configs, args.config), data_path, epochs=int(args.epochs))
 
 
 if __name__ == "__main__":
     # Absolute datapaths to work with parallell processes
-    data_path = Path("data/").absolute()
-    log_dir = Path("logs/").absolute()
-    models_dir = Path("models/")
-    # best_checkpoint = tune_idd_asha(data_path, log_dir, 4, 5, 0.5)
-    best_checkpoint = tune_idd_asha(
-        data_path,
-        log_dir,
-        base_config,
-        num_samples=2,
-        num_epochs=10,
-        gpus_per_trial=0.5,
-        cpu_per_trial=4,
-        grace_period=3,
-        reduction_factor=3,
-    )
-    save_checkpoint(best_checkpoint, models_dir)
+    # data_path = Path("data/").absolute()
+    # log_dir = Path("logs/").absolute()
+    # models_dir = Path("models/")
+    # best_checkpoint = tune_idd_asha(
+    #     data_path,
+    #     log_dir,
+    #     base_config,
+    #     num_samples=10,
+    #     num_epochs=10,
+    #     gpus_per_trial=0.5,
+    #     cpu_per_trial=4,
+    #     grace_period=1,
+    #     reduction_factor=2,
+    # )
+    # save_checkpoint(best_checkpoint, models_dir)
+    parser = ArgumentParser()
+    parser.add_argument("--epochs", required=True)
+    parser.add_argument("--config", required=True)
+    main(parser.parse_args())

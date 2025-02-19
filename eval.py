@@ -12,27 +12,8 @@ from skimage import measure
 from tqdm import tqdm
 
 from datasets import TestDataset, TrainValDataset
-from utils import load_model
-
-data_root = Path("./data")
-
-train_output_dir = data_root / "training_result"
-class_names = ["grassland_shrubland", "logging", "mining", "plantation"]
-
-sample_indices = list(range(176))  # train_0.tif to train_175.tif
-train_indices, val_indices = sklearn.model_selection.train_test_split(
-    sample_indices, test_size=0.2, random_state=42
-)
-val_loader = torch.utils.data.DataLoader(
-    TrainValDataset(
-        data_root,
-        val_indices,
-        augmentations=None,
-    ),
-    batch_size=2,
-    num_workers=8,
-    shuffle=False,
-)
+from Models import Model
+from argparse import ArgumentParser
 
 
 def run_inference(model, loader, pred_output_dir):
@@ -57,15 +38,6 @@ def run_inference(model, loader, pred_output_dir):
             )
 
 
-# TODO: Change to config file later
-model = load_model("./models/7c201_00000_valf1_31.77/")
-model = model.cuda()
-model.eval()
-
-val_pred_dir = data_root / "val_preds"
-run_inference(model, val_loader, val_pred_dir)
-
-
 def compute_f1_score(pred_mask, truth_mask):
     # `pred_mask` is a binary numpy array of shape (H, W) = (1024, 1024)
     # `truth_mask` is a binaru numpy array of shape (H, W) = (1024, 1024)
@@ -88,50 +60,7 @@ def compute_f1_score(pred_mask, truth_mask):
     return f1
 
 
-score_thresh = 0.5  # threshold to binarize the prediction mask
-min_area = 10000  # if the predicted area of a class is less than this, submit an zero mask because small predicted areas are often false positives
-
-val_f1_scores = {}
-for idx in sorted(val_indices):
-    fn = f"train_{idx}"
-    # prepare prediction mask
-    pred_mask = np.load(val_pred_dir / f"{fn}.npy")  # (4, 1024, 1024)
-    pred_mask = pred_mask > score_thresh  # binarize
-    # prepare ground truth mask
-    truth_mask = np.load(data_root / "train_masks" / f"{fn}.npy")  # (4, 1024, 1024)
-    # compute f1 score for each class
-    val_f1_scores[fn] = {}
-    for i, class_name in enumerate(class_names):
-        pred_for_a_class = pred_mask[i]
-        if pred_for_a_class.sum() < min_area:
-            pred_for_a_class = np.zeros_like(
-                pred_for_a_class
-            )  # set all to zero if the predicted area is less than `min_area`
-        val_f1_scores[fn][class_name] = compute_f1_score(
-            pred_for_a_class, truth_mask[i]
-        )
-val_f1_scores = pd.DataFrame(val_f1_scores).T
-
-# add a column for average of all the 4 classes
-val_f1_scores["all_classes"] = val_f1_scores.mean(axis=1)
-# add a row for average of all the val images
-val_f1_scores.loc["all_images"] = val_f1_scores.mean()
-
-print(f"val f1 score: {val_f1_scores.loc['all_images', 'all_classes']:.4f}")
-
-
-test_loader = torch.utils.data.DataLoader(
-    TestDataset(data_root),
-    batch_size=4,
-    num_workers=8,
-    shuffle=False,
-)
-
-test_pred_dir = data_root / "test_preds"
-run_inference(model, test_loader, test_pred_dir)
-
-
-def detect_polygons(pred_dir, score_thresh, min_area):
+def detect_polygons(pred_dir, score_thresh, min_area, class_names):
     pred_dir = Path(pred_dir)
     pred_paths = list(pred_dir.glob("*.npy"))
     pred_paths = sorted(pred_paths)
@@ -164,24 +93,118 @@ def detect_polygons(pred_dir, score_thresh, min_area):
     return polygons_all_imgs
 
 
-test_pred_polygons = detect_polygons(
-    test_pred_dir, score_thresh=score_thresh, min_area=min_area
-)
+def run_validation(data_root, model, class_names, score_thresh, min_area):
+    sample_indices = list(range(176))  # train_0.tif to train_175.tif
+    _, val_indices = sklearn.model_selection.train_test_split(
+        sample_indices, test_size=0.2, random_state=42
+    )
+    val_loader = torch.utils.data.DataLoader(
+        TrainValDataset(
+            data_root,
+            val_indices,
+            augmentations=None,
+        ),
+        batch_size=6,
+        num_workers=6,
+        shuffle=False,
+    )
 
-submission_save_path = data_root / "submission.json"
+    val_pred_dir = data_root / "val_preds"
+    run_inference(model, val_loader, val_pred_dir)
 
-images = []
-for img_id in range(118):  # evaluation_0.tif to evaluation_117.tif
-    annotations = []
-    for class_name in class_names:
-        for poly in test_pred_polygons[f"evaluation_{img_id}.tif"][class_name]:
-            seg: list[float] = []  # [x0, y0, x1, y1, ..., xN, yN]
-            for xy in poly.exterior.coords:
-                seg.extend(xy)
+    val_f1_scores = {}
+    for idx in sorted(val_indices):
+        fn = f"train_{idx}"
+        # prepare prediction mask
+        pred_mask = np.load(val_pred_dir / f"{fn}.npy")  # (4, 1024, 1024)
+        pred_mask = pred_mask > score_thresh  # binarize
+        # prepare ground truth mask
+        truth_mask = np.load(data_root / "train_masks" / f"{fn}.npy")  # (4, 1024, 1024)
+        # compute f1 score for each class
+        val_f1_scores[fn] = {}
+        for i, class_name in enumerate(class_names):
+            pred_for_a_class = pred_mask[i]
+            if pred_for_a_class.sum() < min_area:
+                pred_for_a_class = np.zeros_like(
+                    pred_for_a_class
+                )  # set all to zero if the predicted area is less than `min_area`
+            val_f1_scores[fn][class_name] = compute_f1_score(
+                pred_for_a_class, truth_mask[i]
+            )
+    val_f1_scores = pd.DataFrame(val_f1_scores).T
 
-            annotations.append({"class": class_name, "segmentation": seg})
+    # add a column for average of all the 4 classes
+    val_f1_scores["all_classes"] = val_f1_scores.mean(axis=1)
+    # add a row for average of all the val images
+    val_f1_scores.loc["all_images"] = val_f1_scores.mean()
 
-    images.append({"file_name": f"evaluation_{img_id}.tif", "annotations": annotations})
+    print(f"val f1 score: {val_f1_scores.loc['all_images', 'all_classes']:.4f}")
 
-with open(submission_save_path, "w", encoding="utf-8") as f:
-    json.dump({"images": images}, f, indent=4)
+
+def run_test(data_root, model, class_names, score_thresh, min_area):
+    test_loader = torch.utils.data.DataLoader(
+        TestDataset(data_root),
+        batch_size=4,
+        num_workers=8,
+        shuffle=False,
+    )
+
+    test_pred_dir = data_root / "test_preds"
+    run_inference(model, test_loader, test_pred_dir)
+
+    test_pred_polygons = detect_polygons(
+        test_pred_dir,
+        score_thresh=score_thresh,
+        min_area=min_area,
+        class_names=class_names,
+    )
+
+    submission_save_path = data_root / "submission.json"
+
+    images = []
+    for img_id in range(118):  # evaluation_0.tif to evaluation_117.tif
+        annotations = []
+        for class_name in class_names:
+            for poly in test_pred_polygons[f"evaluation_{img_id}.tif"][class_name]:
+                seg: list[float] = []  # [x0, y0, x1, y1, ..., xN, yN]
+                for xy in poly.exterior.coords:
+                    seg.extend(xy)
+
+                annotations.append({"class": class_name, "segmentation": seg})
+
+        images.append(
+            {"file_name": f"evaluation_{img_id}.tif", "annotations": annotations}
+        )
+
+    with open(submission_save_path, "w", encoding="utf-8") as f:
+        json.dump({"images": images}, f, indent=4)
+
+
+def main(args):
+    data_root = Path("./data")
+
+    # train_output_dir = data_root / "training_result"
+    class_names = ["grassland_shrubland", "logging", "mining", "plantation"]
+
+    # TODO: Change to config file later
+    # model = load_model("./models/4dfa1_00001_valf1_52.80/")
+    model = Model.load_from_checkpoint(
+        # "./lightning_logs/version_3/checkpoints/epoch=5-step=144.ckpt"
+        args.model_checkpoint
+    )
+    model = model.cuda()
+    model.eval()
+
+    score_thresh = 0.5  # threshold to binarize the prediction mask
+    # if the predicted area of a class is less than this,
+    # submit an zero mask because small predicted areas are often false positives
+    min_area = 10000
+
+    run_validation(data_root, model, class_names, score_thresh, min_area)
+    run_test(data_root, model, class_names, score_thresh, min_area)
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("model_checkpoint")
+    main(parser.parse_args())
