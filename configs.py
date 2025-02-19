@@ -1,31 +1,68 @@
 from ray import tune
 
-base_config = {
+unet = {
     "model_type": "pt_seg",
     "model_params": {
         "arch": "unet",
-        "encoder_name": "tu-tf_efficientnetv2_s",  # use `tf_efficientnetv2_s` from timm
-        "encoder_weights": "imagenet",  # always starts from imagenet pre-trained weight
+        "encoder_name": "tu-tf_efficientnetv2_s",
+        "encoder_weights": "imagenet",
         "in_channels": 12,
         "classes": 4,
     },
-    "lr": tune.uniform(1e-2, 1e-5),
-    "batch_size": tune.choice([2]),
-    "weight_decay": tune.uniform(1e-2, 1e-5),
-    "num_workers": tune.choice([10]),
+    "lr": 0.001,
+    "batch_size": 6,
+    "weight_decay": 0,
+    "num_workers": 6,
 }
 
-deeplab_config = {
+deeplab = {
     "model_type": "pt_seg",
     "model_params": {
         "arch": "deeplabv3plus",
-        "encoder_name": "resnet50",  # use `tf_efficientnetv2_s` from timm
-        "encoder_weights": "imagenet",  # always starts from imagenet pre-trained weight
+        "encoder_name": "resnet50",
+        "encoder_weights": "imagenet",
         "in_channels": 12,
         "classes": 4,
     },
+    "lr": 0.001,
+    "batch_size": 6,
+    "weight_decay": 0,
+    "num_workers": 6,
+}
+
+segformer = {
+    "model_type": "seg_former",
+    "model_params": {"Empty": None},
+    "lr": 0.001,
+    "batch_size": 6,
+    "weight_decay": 0,
+    "num_workers": 6,
+}
+
+raytune_config = {
+    "model_type": "pt_seg",
+    "model_params": tune.choice(
+        [
+            {
+                "arch": "unet",
+                "encoder_name": "tu-tf_efficientnetv2_s",
+                "encoder_weights": "imagenet",
+                "in_channels": 12,
+                "classes": 4,
+            },
+            {
+                "arch": "deeplabv3plus",
+                "encoder_name": "resnet50",
+                "encoder_weights": "imagenet",
+                "in_channels": 12,
+                "classes": 4,
+            },
+        ]
+    ),
     "lr": tune.uniform(1e-2, 1e-5),
-    "batch_size": tune.choice([2]),
+    # "batch_size": tune.choice([2]),
+    "batch_size": 2,
     "weight_decay": tune.uniform(1e-2, 1e-5),
-    "num_workers": tune.choice([10]),
+    # "num_workers": tune.choice([10]),
+    "num_workers": 4,
 }
