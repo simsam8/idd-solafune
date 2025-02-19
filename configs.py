@@ -10,9 +10,9 @@ unet = {
         "classes": 4,
     },
     "lr": 0.001,
-    "batch_size": 6,
+    "batch_size": 8,
     "weight_decay": 0,
-    "num_workers": 6,
+    "num_workers": 12,
 }
 
 deeplab = {
@@ -25,9 +25,9 @@ deeplab = {
         "classes": 4,
     },
     "lr": 0.001,
-    "batch_size": 6,
+    "batch_size": 8,
     "weight_decay": 0,
-    "num_workers": 6,
+    "num_workers": 12,
 }
 
 segformer = {
