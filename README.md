@@ -2,6 +2,26 @@
 
 Link to competition: https://solafune.com/competitions/68ad4759-4686-4bb3-94b8-7063f755b43d?menu=about&tab=
 
+## Running training and validation
+
+To train a model run the following command:
+
+`python train.py --epochs 3 --config unet`
+
+available configs:
+- unet
+- deeplab
+- segformer
+
+Model checkpoints are stored in `./lightning_logs/version_n` by default. 
+
+
+To run validation and create a submission:
+
+`python eval.py ./lightning_logs/version_0/checkpoints/epoch=1-step=48.ckpt`
+
+Change the path to the model you want to use.
+
 
 ## Setup environment
 
