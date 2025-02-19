@@ -1,5 +1,5 @@
-import numpy as np
 import lightning as pl
+import numpy as np
 import sklearn
 import tifffile
 import torch
@@ -123,11 +123,14 @@ class TestDataset(torch.utils.data.Dataset):
 
 
 class IDDDataModule(pl.LightningDataModule):
-    def __init__(self, data_root, augmentations=None, batch_size=8) -> None:
+    def __init__(
+        self, data_root, augmentations=None, batch_size=8, num_workers=8
+    ) -> None:
         super().__init__()
         self.data_dir = data_root
         self.batch_size = batch_size
         self.augmentations = augmentations
+        self.num_workers = num_workers
 
     def setup(self, stage=None) -> None:
         if stage == "fit":
@@ -147,10 +150,22 @@ class IDDDataModule(pl.LightningDataModule):
             self.idd_test = TestDataset(self.data_dir)
 
     def train_dataloader(self):
-        return DataLoader(self.idd_train, batch_size=self.batch_size, num_workers=4)
+        return DataLoader(
+            self.idd_train,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            persistent_workers=True,
+        )
 
     def val_dataloader(self):
-        return DataLoader(self.idd_val, batch_size=self.batch_size, num_workers=4)
+        return DataLoader(
+            self.idd_val,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            persistent_workers=True,
+        )
 
     def test_dataloader(self):
-        return DataLoader(self.idd_test, batch_size=self.batch_size, num_workers=4)
+        return DataLoader(
+            self.idd_test, batch_size=self.batch_size, num_workers=self.num_workers
+        )
