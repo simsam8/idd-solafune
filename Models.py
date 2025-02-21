@@ -1,15 +1,43 @@
-import lightning.pytorch as pl 
+import lightning as pl
 import segmentation_models_pytorch as smp
-from timm.optim import create_optimizer_v2
-from timm.scheduler.scheduler_factory import create_scheduler_v2
-from transformers import SegformerForSemanticSegmentation
+import torch
 import torch.nn as nn
-import torch 
+from transformers import SegformerForSemanticSegmentation
+
+
+def seg_former():
+    model = SegformerForSemanticSegmentation.from_pretrained(
+        "nvidia/segformer-b0-finetuned-ade-512-512",
+    )
+    model.config.num_channels = 12  
+
+    # manually replace the first convolutional layer to accept 12 channels
+    new_conv = nn.Conv2d(
+        in_channels=12,
+        out_channels=model.config.hidden_sizes[0],
+        kernel_size=7,
+        stride=4,
+        padding=3,
+        bias=False,
+    )
+
+    model.segformer.encoder.patch_embeddings[0].proj = new_conv
+
+    # reinitialize the weights of the new conv layer
+    nn.init.kaiming_normal_(model.segformer.encoder.patch_embeddings[0].proj.weight, mode="fan_out", nonlinearity="relu")
+
+    # modify classifier to output 4 segmentation classes
+    model.decode_head.classifier = nn.Conv2d(
+        in_channels=model.config.decoder_hidden_size,
+        out_channels=4,  
+        kernel_size=1,
+    )
+    return model
 
 class Model(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
-        self.config = config
+        self.save_hyperparameters()
 
         self.lr = config["lr"]
         self.weight_decay = config["weight_decay"]
@@ -17,22 +45,10 @@ class Model(pl.LightningModule):
         self.num_workers = config["num_workers"]
         self.class_names = ["grassland_shrubland", "logging", "mining", "plantation"]
 
-        self.model = SegformerForSemanticSegmentation.from_pretrained(
-            "nvidia/segformer-b0-finetuned-ade-512-512",
-        )
-        self.model.segformer.encoder.patch_embeddings[0].projection = nn.Conv2d(
-            in_channels=12,
-            out_channels=self.model.config.hidden_sizes[0],
-            kernel_size=7,
-            stride=4,
-            padding=3,
-            bias=False,
-        )
-        self.model.decode_head.classifier = nn.Conv2d(
-            in_channels=self.model.config.decoder_hidden_size,
-            out_channels=4,
-            kernel_size=1,
-        )
+        if config["model_type"] == "pt_seg":
+            self.model = smp.create_model(**config["model_params"])
+        elif config["model_type"] == "seg_former":
+            self.model = seg_former()
 
         self.dice_loss_fn = smp.losses.DiceLoss(
             mode=smp.losses.MULTILABEL_MODE, from_logits=True
@@ -44,13 +60,20 @@ class Model(pl.LightningModule):
 
     def forward(self, image):
         # assuming image is already normalized
-        return self.model(image)  # logits
+        return self.model(image).logits  # logits
 
     def shared_step(self, batch, stage):
         image = batch["image"]
         mask = batch["mask"]
 
         logits_mask = self.forward(image)
+
+        logits_mask = torch.nn.functional.interpolate(
+            logits_mask, size=mask.shape[2:], mode="bilinear", align_corners=False
+        )
+
+        print(f"logits_mask shape: {logits_mask.shape}")
+        print(f"mask shape: {mask.shape}")
 
         loss = self.dice_loss_fn(logits_mask, mask) + self.bce_loss_fn(
             logits_mask, mask
@@ -131,39 +154,8 @@ class Model(pl.LightningModule):
         self.validation_step_outputs.clear()
 
     def configure_optimizers(self):
-        # optimizer
-        # optimizer = create_optimizer_v2(
-        #     self.parameters(),
-        #     opt="adamw",
-        #     lr=self.lr,
-        #     weight_decay=self.weight_decay,
-        #     filter_bias_and_bn=True,  # filter out bias and batchnorm from weight decay
-        # )
-        #
-        # # lr scheduler
-        # scheduler, _ = create_scheduler_v2(
-        #     optimizer,
-        #     sched="cosine",
-        #     num_epochs=epochs,
-        #     min_lr=0.0,
-        #     warmup_lr=1e-5,
-        #     warmup_epochs=0,
-        #     warmup_prefix=False,
-        #     step_on_epochs=True,
-        # )
-        #
-        # return {
-        #     "optimizer": optimizer,
-        #     "lr_scheduler": {
-        #         "scheduler": scheduler,
-        #         "interval": "epoch",
-        #     },
-        # }
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
-
-    # def lr_scheduler_step(self, scheduler, metric):
-    #     # workaround for timm's scheduler:
-    #     # https://github.com/Lightning-AI/lightning/issues/5555#issuecomment-1065894281
-    #     scheduler.step(
-    #         epoch=self.current_epoch
-    #     )  # timm's scheduler need the epoch value
+        return torch.optim.Adam(
+            self.parameters(),
+            lr=self.lr,
+            weight_decay=self.weight_decay,
+        )
