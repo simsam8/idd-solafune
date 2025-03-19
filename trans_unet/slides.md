@@ -11,16 +11,31 @@ of convolution operations.
 - Other studies apply self-attention to CNNs or 
 use Transformers instead to capture global contexts.
 
-__INSERT IMAGE OF UNET__
+## UNet
+
+![UNet Architecture](./img/UNet.png)
 
 
 ## In this paper
 
 - Study the potential of transformers in medical image segmentation.
-- Using only a transformer for encoding is not enough.
-- Transformers only on global context, while CNNs extracts low-level details.
+- Transformers capture global contexts.
+- UNet (CNNs) extracts low-level details.
 - TransUNet: a hybrid CNN-Transformer architecture
 - Compare with other architectures on medical images segmentation.
+- Ablation studies on model parameters
+
+## Relevance for competition (Deforestation Drivers)
+
+- UNet as baseline
+- Both are segmentation tasks
+- Does TransUNet perform better?
+
+![](../data/vis_train/train_1.png){ width=50% }
+
+![](../data/vis_train/train_23.png){ width=50% }
+
+![](../data/vis_train/train_25.png){ width=50% }
 
 
 # Method and Architecture
@@ -39,31 +54,86 @@ __INSERT IMAGE OF UNET__
 - Reshape input $\bf x$ into a sequence of 2D patches.
 - {$\mathbf{x}_{p}^{i} \in \mathbb {R}^{P^{2}} \cdot C | i = 1,\dots , N$}
 - Each patch is $P \times P$.
-- $N = \frac{NW}{P^2}$ is the number of patches, i.e. the sequence length.
+- $N = \frac{HW}{P^2}$ is the number of patches, i.e. the sequence length.
 
 ## Patch Embedding
 
+:::::::::::::: {.columns}
+::: {.column width="50%"}
+- Pass patches into a latent D-dimensional embedding space with a trainable linear projection.
+- $\mathbf E \in \mathbb R^{P^2 \cdot C) \times D}$ is the patch embedding projection.
+- $\mathbf E_{pos} \in \mathbb R^{N\times D}$ is the position embedding.
+:::
+::: {.column width="50%"}
+$z_0 = [x_p^1 \mathbf E ; x_p^2 \mathbf E ; \dots ; x_p^N \mathbf E] + \mathbf E_{pos}$
+:::
+::::::::::::::
+
+## Transformer Encoder
+
+:::::::::::::: {.columns}
+::: {.column width="50%"}
+- $L$ layers of Multihead Self-Attention and Multi-Layer Perceptron
+- $z_{\ell}' = MSA(LN(z_{\ell - 1})) + z_{\ell - 1}$
+- $z_{\ell}' = MLP(LN(z_{\ell}')) + z_{\ell}'$
+- $LN(\cdot)$ is the layer normalization
+:::
+::: {.column width="50%"}
+
+![Transformer Encoder](./img/transformer_encoder.png){ height=70% }
+
+:::
+::::::::::::::
+
 
 ## TransUNet
+
+- Hybrid CNN and Transformer encoder
+- Cascaded Upsampler (CUP)
+- Skip connections from CNN
+
+## TransUNet
+
+![TransUNet architecture](./img/transunet.png)
 
 
 # Experiments and Results
 
 ## Dataset and Evaluation
 
-## Implementation Details
+- Synapse multi-organ segmentation dataset
+- CT scans images
+- Metrics: Dice Similarity Score (DSC) and Hausdorff Distance (HD)
 
 ## Comparison with State-of-the-arts
 
-![Comparison of the Synapse multi-organ CT dataset (average dice score % and average hausdorf distance in mm, and dice score % for each organ).](./img/comparison.png)
+![Synapse dataset results](./img/comparison.png)
+
+## Segmentation comparison
+
+![TransUNet predicts less false positive and keep finer information](./img/segmentations.png)
 
 # Ablation Studies
 
 ## Number of Skip-connections
 
+![Ablation study on the number of skip-connections](./img/skip_connections.png)
+
 ## Influence of Input Resolution
 
+![Ablation study on the influence of input resolution](./img/input_resolution.png)
+
 ## Influence of Patch Size/Sequence Length
+
+![Ablation study on patch size and sequence length](./img/patch_and_sequence_size.png)
+
+## Model Scaling
+
+- Parameters for the hidden size D, number of layers, MLP size, and number of heads.
+- Base: 12, 768, 3072, 12
+- Large: 24, 1024, 4096, 16
+
+![Ablation study on model scale](./img/model_scale.png)
 
 
 
