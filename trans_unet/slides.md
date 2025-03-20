@@ -61,7 +61,7 @@ use Transformers instead to capture global contexts.
 :::::::::::::: {.columns}
 ::: {.column width="50%"}
 - Pass patches into a latent D-dimensional embedding space with a trainable linear projection.
-- $\mathbf E \in \mathbb R^{P^2 \cdot C) \times D}$ is the patch embedding projection.
+- $\mathbf E \in \mathbb R^{(P^2 \cdot C) \times D}$ is the patch embedding projection.
 - $\mathbf E_{pos} \in \mathbb R^{N\times D}$ is the position embedding.
 :::
 ::: {.column width="50%"}
@@ -134,6 +134,12 @@ $z_0 = [x_p^1 \mathbf E ; x_p^2 \mathbf E ; \dots ; x_p^N \mathbf E] + \mathbf E
 - Large: 24, 1024, 4096, 16
 
 ![Ablation study on model scale](./img/model_scale.png)
+
+## Conclusion
+
+- First usage of Transformers in (medical) image segmentation.
+- Global context with Transformers and low-level details with CNNs.
+- TransUNet performs better than other competing methods.
 
 
 
