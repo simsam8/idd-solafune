@@ -44,7 +44,7 @@ augmentations = albu.Compose(
 
 def pl_trainer(config, data_dir, epochs=10):
     model = Model(config)
-    train_ouput_dir = data_dir / "training_result"
+    train_ouput_dir = data_dir / "training_result" / f"{config['model_name']}"
     trainer = pl.Trainer(
         max_epochs=epochs,
         callbacks=[
