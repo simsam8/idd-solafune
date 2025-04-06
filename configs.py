@@ -1,10 +1,11 @@
 from ray import tune
 
 unet = {
+    "model_name": "unet",
     "model_type": "pt_seg",
     "model_params": {
         "arch": "unet",
-        "encoder_name": "tu-tf_efficientnetv2_s",
+        "encoder_name": "resnet50",
         "encoder_weights": "imagenet",
         "in_channels": 12,
         "classes": 4,
@@ -16,6 +17,7 @@ unet = {
 }
 
 deeplab = {
+    "model_name": "deeplab",
     "model_type": "pt_seg",
     "model_params": {
         "arch": "deeplabv3plus",
@@ -31,12 +33,28 @@ deeplab = {
 }
 
 segformer = {
-    "model_type": "seg_former",
-    "model_params": {"Empty": None},
+    "model_name": "segformer",
+    "model_type": "pt_seg",
+    "model_params": {
+        "arch": "segformer",
+        "encoder_name": "resnet50",
+        "encoder_weights": "imagenet",
+        "in_channels": 12,
+        "classes": 4,
+    },
     "lr": 0.001,
-    "batch_size": 6,
+    "batch_size": 4,
     "weight_decay": 0,
-    "num_workers": 6,
+    "num_workers": 12,
+}
+
+transunet = {
+    "model_name": "transunet",
+    "model_type": "transunet",
+    "lr": 0.001,
+    "batch_size": 2,
+    "weight_decay": 0,
+    "num_workers": 12,
 }
 
 raytune_config = {
