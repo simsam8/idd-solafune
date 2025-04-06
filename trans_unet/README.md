@@ -17,3 +17,9 @@
 - [] It is less computationally expensive
 - [] By applying an auto-encoder to learn relevant features
 - [] All of the above
+
+
+## Code references
+
+- [UNet using resnet50](https://github.com/rawmarshmellows/pytorch-unet-resnet-50-encoder/blob/master/u_net_resnet_50_encoder.py)
+- [Official TransUNet repo](https://github.com/Beckschen/TransUNet/tree/main)
