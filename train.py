@@ -42,7 +42,7 @@ augmentations = albu.Compose(
 )
 
 
-def pl_trainer(config, data_dir, epochs=10):
+def pl_trainer(config, data_dir, epochs=10, frozen_start=False, frozen_epochs=0):
     model = Model(config)
     train_ouput_dir = data_dir / "training_result" / f"{config['model_name']}"
     trainer = pl.Trainer(
@@ -58,7 +58,7 @@ def pl_trainer(config, data_dir, epochs=10):
             ),
             LearningRateMonitor(logging_interval="step"),
         ],
-        logger=[TensorBoardLogger(train_ouput_dir, name=None)],
+        logger=TensorBoardLogger(train_ouput_dir, name=None),
         precision="16-mixed",
         deterministic=True,
         benchmark=False,
@@ -74,16 +74,31 @@ def pl_trainer(config, data_dir, epochs=10):
     data_module = IDDDataModule(
         data_dir, augmentations, config["batch_size"], config["num_workers"]
     )
-    trainer.fit(model, datamodule=data_module)
+    if frozen_start:
+        trainer.fit_loop.max_epochs = frozen_epochs
+        trainer.fit(model, datamodule=data_module)
+        model.model.unlock_encoder(True)
+        trainer.fit_loop.max_epochs = epochs - frozen_epochs
+        trainer.fit(model, datamodule=data_module)
+    else:
+        trainer.fit(model, datamodule=data_module)
 
 
 def main(args):
     data_path = Path("data/").absolute()
-    pl_trainer(getattr(configs, args.config), data_path, epochs=int(args.epochs))
+    pl_trainer(
+        getattr(configs, args.config),
+        data_path,
+        epochs=int(args.epochs),
+        frozen_start=args.frozen_start,
+        frozen_epochs=int(args.f_epochs),
+    )
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--epochs", required=True)
     parser.add_argument("--config", required=True)
+    parser.add_argument("--frozen_start", action="store_true")
+    parser.add_argument("--f_epochs", required=False)
     main(parser.parse_args())
