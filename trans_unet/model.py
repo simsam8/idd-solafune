@@ -1,6 +1,8 @@
-import timm
 import torch
 import torch.nn as nn
+from timm.layers.norm_act import GroupNormAct
+from timm.layers.std_conv import StdConv2dSame
+from timm.models._factory import create_model
 
 
 class ConvBlock(nn.Module):
@@ -39,10 +41,8 @@ class DecoderBlock(nn.Module):
         in_channels,
         out_channels,
         skip_channels=0,
-        last_skip=False,
     ) -> None:
         super().__init__()
-        self.last_skip = last_skip
         self.conv1 = ConvBlock(
             in_channels + skip_channels,
             out_channels,
@@ -58,11 +58,11 @@ class DecoderBlock(nn.Module):
         self.up = nn.UpsamplingBilinear2d(scale_factor=2)
 
     def forward(self, x, skip=None):
+        x = self.up(x)
         if skip is not None:
             x = torch.cat([x, skip], dim=1)
         x = self.conv1(x)
         x = self.conv2(x)
-        x = self.up(x)
         return x
 
 
@@ -70,10 +70,9 @@ class DecoderCUP(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         self.bridge = ConvBlock(768, 512, padding=1, kernel_size=3, stride=1)
-        self.skip_channels = [256, 512, 1024]
-        self.decoder_block1 = DecoderBlock(512, 256, skip_channels=1024)
-        self.decoder_block2 = DecoderBlock(256, 128, skip_channels=512)
-        self.decoder_block3 = DecoderBlock(128, 64, skip_channels=256, last_skip=False)
+        self.decoder_block1 = DecoderBlock(512, 256, skip_channels=512)
+        self.decoder_block2 = DecoderBlock(256, 128, skip_channels=256)
+        self.decoder_block3 = DecoderBlock(128, 64, skip_channels=64)
 
     def forward(self, x, skip_features):
         x = self.bridge(x)
@@ -88,9 +87,7 @@ class SegmentationHead(nn.Module):
     def __init__(self, input_channels, segmentation_channels) -> None:
         super().__init__()
         self.conv1 = DecoderBlock(input_channels, input_channels)
-        self.segmentation = ConvBlock(
-            input_channels, segmentation_channels, padding=1
-        )  # Adjust to match input resolution
+        self.segmentation = ConvBlock(input_channels, segmentation_channels, padding=1)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -99,44 +96,72 @@ class SegmentationHead(nn.Module):
 
 
 class TransUNet(nn.Module):
+    """
+    Implementation of TransUNet using
+    ViT-base ResNet50 pretrained on ImageNet-21k.
+
+    12 Transformer layers.
+    Patch size of 16.
+    ResNet50 pre-trained on 224x224 images.
+    """
+
     def __init__(self, input_channels=12, segmentation_channels=4) -> None:
         super().__init__()
-        self.resnet_vit = timm.models.vit_base_r50_s16_224()
-        self.resnet_stem = self.resnet_vit.patch_embed.backbone.stem
-
-        # Adjust channels to match the expected input for Resnet50 encoder
-        self.adjust_channels = nn.Conv2d(
-            input_channels, 3, kernel_size=1, stride=1, padding=0
+        self.resnet_vit = create_model(
+            "vit_base_r50_s16_224.orig_in21k", pretrained=True, num_classes=0
         )
+        self.resnet_stem = self.resnet_vit.patch_embed.backbone.stem
+        self.stem = nn.Sequential(
+            StdConv2dSame(input_channels, 64, kernel_size=7, stride=2, bias=False),
+            GroupNormAct(64, 32),
+        )
+
         self.resnet_stages = self.resnet_vit.patch_embed.backbone.stages
-        self.resnet_norm = self.resnet_vit.patch_embed.backbone.norm
-        self.resnet_head = self.resnet_vit.patch_embed.backbone.head
+        self.resnet_post = nn.Sequential(
+            self.resnet_vit.patch_embed.backbone.norm,
+            self.resnet_vit.patch_embed.backbone.head,
+        )
         self.projection = self.resnet_vit.patch_embed.proj
+
+        self.vit = nn.Sequential(*list(self.resnet_vit.children())[1:])
 
         self.decoder = DecoderCUP()
 
         self.head = SegmentationHead(64, segmentation_channels)
+        self.unlock_encoder(False)
+
+    def unlock_encoder(self, frozen=True):
+        for param in self.resnet_stages.parameters():
+            param.requires_grad = frozen
+        for param in self.resnet_post.parameters():
+            param.requires_grad = frozen
+        for param in self.projection.parameters():
+            param.requires_grad = frozen
+        for param in self.vit.parameters():
+            param.requires_grad = frozen
 
     def forward(self, x):
-
         # -- ResNet --
-        x = self.adjust_channels(x)
-        x = self.resnet_stem(x)
-        skip_features = []
-        for stage in self.resnet_stages.children():
-            x = stage(x)
-            skip_features.append(x)
+        x = self.stem(x)
+        skip_features = [x]  # Add stem as first skip connection
 
-        x = self.resnet_norm(x)
-        x = self.resnet_head(x)
+        # Max pool after adding to skip connections
+        x = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)(x)
+
+        for i, stage in enumerate(self.resnet_stages.children()):
+            x = stage(x)
+            # Last stage is not used as skip connection
+            if i != 2:
+                skip_features.append(x)
+
+        x = self.resnet_post(x)
         x = self.projection(x)  # (b, hidden, n_patches^(1/2), n_patches^(1/2))
         patch_size = x.shape[-1]
         x = x.flatten(2)
         x = x.transpose(-1, -2)  # (B, n_patches, hidden)
 
         # -- Forward pass through ViT --
-        for module in list(self.resnet_vit.children())[1:]:
-            x = module(x)
+        x = self.vit(x)
 
         # Reshape for CUP
         x = x.transpose(-1, -2)
@@ -152,11 +177,11 @@ class TransUNet(nn.Module):
 
 
 if __name__ == "__main__":
-    vit = timm.models.vit_base_r50_s16_224()
+    # For testing purposes
+    vit = create_model(
+        "vit_base_r50_s16_224.orig_in21k", pretrained=True, num_classes=0
+    )
     test_input = torch.ones((1, 12, 1024, 1024))
-    print(vit.patch_embed.backbone.children())
-    for child in vit.patch_embed.backbone.children():
-        print(child)
-
-    # model = TransUNet()
-    # model(test_input)
+    print(vit)
+    model = TransUNet()
+    model(test_input)
