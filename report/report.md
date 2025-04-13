@@ -1,6 +1,6 @@
 ---
 documentclass: nldl
-classoption: final
+<!--classoption: final-->
 title: Identifying Deforestation Drivers
 bibliography: ./references.bib
 
