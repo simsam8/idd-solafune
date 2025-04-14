@@ -48,7 +48,7 @@ TODO:
 - [] Our Contributions
 
 In this paper we are working on the task of identifying deforestation drivers.
-This is part of a Solafune ML competition where the goal is to classify and 
+This is part of a Solafune ML competition[^1] where the goal is to classify and 
 segment different causes of deforestation drivers in sattelite imagery.
 
 Several architectures have been developed for image segmentation in different fields,
@@ -64,6 +64,8 @@ the papers in which architectures we have implemented.
 Our contributions consists of applying different segmentation model architectures 
 on a deforestation segmentation task, and comparing their performance.
 
+[^1]: [Competition website](https://solafune.com/competitions/68ad4759-4686-4bb3-94b8-7063f755b43d?menu=about&tab=&modal=%22%22)
+
 
 
 # Methods
@@ -73,6 +75,10 @@ TODO:
 - Explain training pipeline
 - Pre-processing
 - Post-processing
+
+We have used this github repo as a baseline for our pipeline.[^2]
+
+[^2]: [Basline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
 
 ## Vision Transformer
 
