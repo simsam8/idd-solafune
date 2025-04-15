@@ -13,14 +13,20 @@ def load_mask(mask_path):
     return mask.astype(np.float32) / 255.0  # normalize to [0, 1]
 
 
-def load_image(image_path):
+# TODO: Option to only load RGB image
+
+
+def load_image(image_path, channels="full"):
     image = tifffile.imread(image_path)  # (H, W, 12), float64
     assert image.shape == (1024, 1024, 12)
     image = np.nan_to_num(image)  # replace NaN with 0
+
+    if channels == "rgb":
+        image = np.take(image, [1, 2, 3], 2)
     return image.astype(np.float32)
 
 
-def normalize_image(image):
+def normalize_image(image, channels="full"):
     # mean of train images
     mean = np.array(
         [
@@ -59,15 +65,22 @@ def normalize_image(image):
         dtype=np.float32,
     )
 
-    mean = mean.reshape(12, 1, 1)
-    std = std.reshape(12, 1, 1)
+    if channels == "rgb":
+        mean = np.take(mean, [1, 2, 3], 0)
+        std = np.take(std, [1, 2, 3], 0)
+        mean = mean.reshape(3, 1, 1)
+        std = std.reshape(3, 1, 1)
+    else:
+        mean = mean.reshape(12, 1, 1)
+        std = std.reshape(12, 1, 1)
 
     return (image - mean) / std
 
 
 class TrainValDataset(torch.utils.data.Dataset):
-    def __init__(self, data_root, sample_indices, augmentations=None):
+    def __init__(self, data_root, sample_indices, augmentations=None, channels="full"):
         self.image_paths, self.mask_paths = [], []
+        self.channels = channels
         for i in sample_indices:
             self.image_paths.append(data_root / "train_images" / f"train_{i}.tif")
             self.mask_paths.append(data_root / "train_masks" / f"train_{i}.npy")
@@ -78,17 +91,17 @@ class TrainValDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         sample = {
-            "image": load_image(self.image_paths[idx]),
+            "image": load_image(self.image_paths[idx], self.channels),
             "mask": load_mask(self.mask_paths[idx]),
         }
 
         if self.augmentations is not None:
             sample = self.augmentations(**sample)
 
-        sample["image"] = sample["image"].transpose(2, 0, 1)  # (12, H, W)
+        sample["image"] = sample["image"].transpose(2, 0, 1)  # (12, H, W) or (3, H, W)
         sample["mask"] = sample["mask"].transpose(2, 0, 1)  # (4, H, W)
 
-        sample["image"] = normalize_image(sample["image"])
+        sample["image"] = normalize_image(sample["image"], self.channels)
 
         # add metadata
         sample["image_path"] = str(self.image_paths[idx])
@@ -98,7 +111,8 @@ class TrainValDataset(torch.utils.data.Dataset):
 
 
 class TestDataset(torch.utils.data.Dataset):
-    def __init__(self, data_root):
+    def __init__(self, data_root, channels="full"):
+        self.channels = channels
         self.image_paths = []
         for i in range(118):  # evaluation_0.tif to evaluation_117.tif
             self.image_paths.append(
@@ -110,11 +124,11 @@ class TestDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         sample = {
-            "image": load_image(self.image_paths[idx]),
+            "image": load_image(self.image_paths[idx], self.channels),
         }
 
-        sample["image"] = sample["image"].transpose(2, 0, 1)  # (12, H, W)
-        sample["image"] = normalize_image(sample["image"])
+        sample["image"] = sample["image"].transpose(2, 0, 1)  # (12, H, W) or (3, H, W)
+        sample["image"] = normalize_image(sample["image"], self.channels)
 
         # add metadata
         sample["image_path"] = str(self.image_paths[idx])
@@ -124,13 +138,19 @@ class TestDataset(torch.utils.data.Dataset):
 
 class IDDDataModule(pl.LightningDataModule):
     def __init__(
-        self, data_root, augmentations=None, batch_size=8, num_workers=8
+        self,
+        data_root,
+        augmentations=None,
+        batch_size=8,
+        num_workers=8,
+        channels="full",
     ) -> None:
         super().__init__()
         self.data_dir = data_root
         self.batch_size = batch_size
         self.augmentations = augmentations
         self.num_workers = num_workers
+        self.channels = channels
 
     def setup(self, stage=None) -> None:
         if stage == "fit":
@@ -140,14 +160,17 @@ class IDDDataModule(pl.LightningDataModule):
             )
 
             self.idd_train = TrainValDataset(
-                self.data_dir, train_indices, augmentations=self.augmentations
+                self.data_dir,
+                train_indices,
+                augmentations=self.augmentations,
+                channels=self.channels,
             )
             self.idd_val = TrainValDataset(
-                self.data_dir, val_indices, augmentations=None
+                self.data_dir, val_indices, augmentations=None, channels=self.channels
             )
 
         if stage == "test":
-            self.idd_test = TestDataset(self.data_dir)
+            self.idd_test = TestDataset(self.data_dir, channels=self.channels)
 
     def train_dataloader(self):
         return DataLoader(

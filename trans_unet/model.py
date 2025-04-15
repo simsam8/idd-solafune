@@ -105,14 +105,14 @@ class TransUNet(nn.Module):
     ResNet50 pre-trained on 224x224 images.
     """
 
-    def __init__(self, input_channels=12, segmentation_channels=4) -> None:
+    def __init__(self, in_channels=12, segmentation_channels=4) -> None:
         super().__init__()
         self.resnet_vit = create_model(
             "vit_base_r50_s16_224.orig_in21k", pretrained=True, num_classes=0
         )
         self.resnet_stem = self.resnet_vit.patch_embed.backbone.stem
         self.stem = nn.Sequential(
-            StdConv2dSame(input_channels, 64, kernel_size=7, stride=2, bias=False),
+            StdConv2dSame(in_channels, 64, kernel_size=7, stride=2, bias=False),
             GroupNormAct(64, 32),
         )
 
@@ -128,7 +128,7 @@ class TransUNet(nn.Module):
         self.decoder = DecoderCUP()
 
         self.head = SegmentationHead(64, segmentation_channels)
-        self.unlock_encoder(False)
+        self.unlock_encoder(True)
 
     def unlock_encoder(self, frozen=True):
         for param in self.resnet_stages.parameters():

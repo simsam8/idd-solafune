@@ -7,7 +7,6 @@ unet = {
         "arch": "unet",
         "encoder_name": "resnet50",
         "encoder_weights": "imagenet",
-        "in_channels": 12,
         "classes": 4,
     },
     "lr": 0.001,
@@ -23,7 +22,6 @@ deeplab = {
         "arch": "deeplabv3plus",
         "encoder_name": "resnet50",
         "encoder_weights": "imagenet",
-        "in_channels": 12,
         "classes": 4,
     },
     "lr": 0.001,
@@ -39,7 +37,6 @@ segformer = {
         "arch": "segformer",
         "encoder_name": "resnet50",
         "encoder_weights": "imagenet",
-        "in_channels": 12,
         "classes": 4,
     },
     "lr": 0.001,
@@ -51,6 +48,9 @@ segformer = {
 transunet = {
     "model_name": "transunet",
     "model_type": "transunet",
+    "model_params": {
+        "segmentation_channels": 4,
+    },
     "lr": 0.001,
     "batch_size": 2,
     "weight_decay": 0,

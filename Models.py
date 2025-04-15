@@ -19,7 +19,7 @@ class Model(pl.LightningModule):
         if config["model_type"] == "pt_seg":
             self.model = smp.create_model(**config["model_params"])
         elif config["model_type"] == "transunet":
-            self.model = TransUNet(12, 4)
+            self.model = TransUNet(config["model_params"]["in_channels"], 4)
 
         self.dice_loss_fn = smp.losses.DiceLoss(
             mode=smp.losses.MULTILABEL_MODE, from_logits=True
