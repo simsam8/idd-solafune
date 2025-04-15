@@ -97,7 +97,12 @@ TODO:
 - Skip connections
 - CUP (Cascaded Upsampler)
 
+TransUNet is very similar to its predecessor UNet. It consists of an encoder and decoder.
+The main difference in TransUNet is the Introduction of a transformer in the encoder.
+
 ![TransUNet architecture [@chen2021transunet]](../trans_unet/img/transunet.png)
+
+## Training and Evaluation
 
 
 # Results
