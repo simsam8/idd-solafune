@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 from argparse import ArgumentParser
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -11,6 +11,8 @@ data_dir = Path("./data")
 
 train_file_names = [f"train_{i}.tif" for i in range(176)]  # train_0.tif ~ train_175.tif
 class_names = ["grassland_shrubland", "logging", "mining", "plantation"]
+
+# Load annotations and create masks/labels for training
 
 with open(data_dir / "train_annotations.json", "r") as f:
     raw_annotations = json.load(f)
@@ -30,8 +32,6 @@ for fn in tqdm(train_file_names):
 
     annotations[fn] = ann
 
-# print(annotations["train_0.tif"])
-
 mask_save_dir = data_dir / "train_masks"
 mask_save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -47,6 +47,8 @@ for fn in tqdm(train_file_names):
         )
 
     np.save(mask_save_dir / fn.replace(".tif", ".npy"), mask)
+
+# Create images for visualization
 
 vis_save_dir = data_dir / "vis_train"
 vis_save_dir.mkdir(parents=True, exist_ok=True)
