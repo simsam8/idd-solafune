@@ -26,13 +26,24 @@ with open(data_dir / "train_annotations.json", "r") as f:
 augmentation = A.Compose([
     A.HorizontalFlip(p=0.5),
     A.VerticalFlip(p=0.5),
-    A.RandomCrop(height=512, width=512, p=0.5),  # Randomly crop smaller regions
-    A.GridDistortion(p=0.2),
-    A.OpticalDistortion(p=0.2),
-    # Exclude transformations that assume RGB (e.g., RGBShift)
+    A.Transpose(p=0.5),
     A.ShiftScaleRotate(p=0.5, border_mode=0),
-    A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.3, per_channel=True),
-    A.Normalize(mean=[0] * 12, std=[1] * 12),  # Support for 12-channel normalization
+    
+    # Apply one of several distortions
+    A.OneOf([
+        A.OpticalDistortion(p=1),
+        A.GridDistortion(p=1),
+        A.ElasticTransform(p=1),
+    ], p=0.3),
+    
+    # Apply one of several intensity changes
+    A.OneOf([
+        A.RandomBrightnessContrast(p=1),
+        A.CLAHE(p=1),
+        A.GaussNoise(var_limit=(10.0, 50.0), p=1),
+    ], p=0.3),
+    
+    A.Normalize(mean=[0]*12, std=[1]*12),  # Adapted for 12-channel input
     ToTensorV2()
 ], additional_targets={"mask": "mask"})
 

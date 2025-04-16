@@ -68,6 +68,17 @@ transunet = {
     "batch_accumulation": 5
 }
 
+vit_seg = {
+    "model_name": "vit_seg",
+    "model_type": "vit_seg",
+    "model_params": {},
+    "train_batch_size": 3,
+    "val_batch_size": 1,
+    "test_batch_size": 3,
+    "num_workers": 12,
+    "batch_accumulation": 5
+}
+
 raytune_config = {
     "model_type": "pt_seg",
     "model_params": tune.choice(

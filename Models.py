@@ -5,6 +5,23 @@ from timm.optim._optim_factory import create_optimizer_v2
 from timm.scheduler.scheduler_factory import create_scheduler_v2
 
 from trans_unet.model import TransUNet
+from vision_transformer.model import ViTSegmentation
+
+
+# class ComboLoss(nn.Module):
+#     def __init__(self, smooth=1e-5):
+#         super().__init__()
+#         self.bce = nn.BCEWithLogitsLoss()
+#         self.smooth = smooth
+#
+#     def forward(self, logits, targets):
+#         bce_loss = self.bce(logits, targets)
+#         probs = torch.sigmoid(logits)
+#         num = 2 * (probs * targets).sum(dim=(2, 3))
+#         den = (probs + targets).sum(dim=(2, 3))
+#         dice = (num + self.smooth) / (den + self.smooth)
+#         dice_loss = 1 - dice.mean()
+#         return 0.5 * bce_loss + 0.5 * dice_loss
 
 
 class Model(pl.LightningModule):
@@ -25,11 +42,18 @@ class Model(pl.LightningModule):
             self.model = smp.create_model(**config["model_params"])
         elif config["model_type"] == "transunet":
             self.model = TransUNet(config["model_params"]["in_channels"], 4)
+        elif config["model_type"] == "vit_seg":
+            self.model = ViTSegmentation()
 
         self.dice_loss_fn = smp.losses.DiceLoss(
             mode=smp.losses.MULTILABEL_MODE, from_logits=True
         )
         self.bce_loss_fn = smp.losses.SoftBCEWithLogitsLoss(smooth_factor=0.0)
+
+        # # Loss
+        # self.loss_fn = ComboLoss()
+        # # Metric
+        # self.val_f1 = MultilabelF1Score(num_labels=4, average='macro')
 
         self.training_step_outputs = []
         self.validation_step_outputs = []

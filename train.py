@@ -4,6 +4,7 @@ from pathlib import Path
 
 import albumentations as albu
 import lightning as pl
+import torch
 from lightning.pytorch import seed_everything
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
@@ -14,8 +15,9 @@ from Models import Model
 
 seed_everything(367)
 
-augmentations = albu.Compose(
-    [
+
+def get_augmentations(model_type):
+    shift_scale_rotate = [
         # shift, scale, and rotate
         albu.ShiftScaleRotate(
             p=0.5,
@@ -26,20 +28,30 @@ augmentations = albu.Compose(
             fill=0,
             fill_mask=0,
             interpolation=2,  # bicubic
-        ),
+        )
+    ]
+    crop = [
         # random crop
         albu.RandomCrop(
             p=1,
             width=512,
             height=512,
-        ),
+        )
+    ]
+    flip_transpose_rotate = [
         # flip, transpose, and rotate90
         albu.HorizontalFlip(p=0.5),
         albu.VerticalFlip(p=0.5),
         albu.Transpose(p=0.5),
         albu.RandomRotate90(p=0.5),
     ]
-)
+    # Use full image resolution for Vision Transformer
+    if model_type == "vit_seg":
+        augs = shift_scale_rotate + flip_transpose_rotate
+    else:
+        augs = shift_scale_rotate + crop + flip_transpose_rotate
+
+    return albu.Compose(augs)
 
 
 def pl_trainer(
@@ -85,7 +97,7 @@ def pl_trainer(
     )
     data_module = IDDDataModule(
         data_dir,
-        augmentations,
+        get_augmentations(config["model_type"]),
         config["train_batch_size"],
         config["val_batch_size"],
         config["test_batch_size"],
@@ -104,6 +116,7 @@ def pl_trainer(
 
 
 def main(args):
+    torch.cuda.empty_cache()
     data_path = Path("data/").absolute()
     pl_trainer(
         getattr(configs, args.config),
