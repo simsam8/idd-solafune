@@ -13,9 +13,6 @@ def load_mask(mask_path):
     return mask.astype(np.float32) / 255.0  # normalize to [0, 1]
 
 
-# TODO: Option to only load RGB image
-
-
 def load_image(image_path, channels="full"):
     image = tifffile.imread(image_path)  # (H, W, 12), float64
     assert image.shape == (1024, 1024, 12)
@@ -141,13 +138,17 @@ class IDDDataModule(pl.LightningDataModule):
         self,
         data_root,
         augmentations=None,
-        batch_size=8,
+        train_batch_size=8,
+        val_batch_size=8,
+        test_batch_size=8,
         num_workers=8,
         channels="full",
     ) -> None:
         super().__init__()
         self.data_dir = data_root
-        self.batch_size = batch_size
+        self.train_batch_size = train_batch_size
+        self.val_batch_size = val_batch_size
+        self.test_batch_size = test_batch_size
         self.augmentations = augmentations
         self.num_workers = num_workers
         self.channels = channels
@@ -175,20 +176,25 @@ class IDDDataModule(pl.LightningDataModule):
     def train_dataloader(self):
         return DataLoader(
             self.idd_train,
-            batch_size=self.batch_size,
+            batch_size=self.train_batch_size,
             num_workers=self.num_workers,
             persistent_workers=True,
+            pin_memory=True,
         )
 
     def val_dataloader(self):
         return DataLoader(
             self.idd_val,
-            batch_size=self.batch_size,
+            batch_size=self.val_batch_size,
             num_workers=self.num_workers,
             persistent_workers=True,
+            pin_memory=True,
         )
 
     def test_dataloader(self):
         return DataLoader(
-            self.idd_test, batch_size=self.batch_size, num_workers=self.num_workers
+            self.idd_test,
+            batch_size=self.test_batch_size,
+            num_workers=self.num_workers,
+            pin_memory=True,
         )

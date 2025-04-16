@@ -1,5 +1,12 @@
 from ray import tune
 
+# Common parameters
+hyper_params = {
+    "lr": 1e-4,
+    "weight_decay": 1e-2,
+    "num_workers": 12,
+}
+
 unet = {
     "model_name": "unet",
     "model_type": "pt_seg",
@@ -9,9 +16,9 @@ unet = {
         "encoder_weights": "imagenet",
         "classes": 4,
     },
-    "lr": 0.001,
-    "batch_size": 8,
-    "weight_decay": 0,
+    "train_batch_size": 8,
+    "val_batch_size": 8,
+    "test_batch_size": 8,
     "num_workers": 12,
 }
 
@@ -24,9 +31,9 @@ deeplab = {
         "encoder_weights": "imagenet",
         "classes": 4,
     },
-    "lr": 0.001,
-    "batch_size": 8,
-    "weight_decay": 0,
+    "train_batch_size": 8,
+    "val_batch_size": 8,
+    "test_batch_size": 8,
     "num_workers": 12,
 }
 
@@ -39,9 +46,9 @@ segformer = {
         "encoder_weights": "imagenet",
         "classes": 4,
     },
-    "lr": 0.001,
-    "batch_size": 4,
-    "weight_decay": 0,
+    "train_batch_size": 4,
+    "val_batch_size": 4,
+    "test_batch_size": 4,
     "num_workers": 12,
 }
 
@@ -51,9 +58,9 @@ transunet = {
     "model_params": {
         "segmentation_channels": 4,
     },
-    "lr": 0.001,
-    "batch_size": 2,
-    "weight_decay": 0,
+    "train_batch_size": 3,
+    "val_batch_size": 1,
+    "test_batch_size": 3,
     "num_workers": 12,
 }
 

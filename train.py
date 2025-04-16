@@ -46,8 +46,11 @@ def pl_trainer(
     config, data_dir, epochs=10, frozen_start=False, frozen_epochs=0, channels="full"
 ):
     config["model_params"]["in_channels"] = 3 if channels == "rgb" else 12
+    config = config | getattr(
+        configs, "hyper_params"
+    )  # Combine model specific parametrs with common parameters
 
-    model = Model(config)
+    model = Model(config, epochs)
     train_ouput_dir = (
         data_dir / "training_result" / f"{config['model_name']}_{channels}"
     )
@@ -76,9 +79,16 @@ def pl_trainer(
         strategy="auto",
         log_every_n_steps=5,
         enable_progress_bar=True,
+        accumulate_grad_batches=2,  # Update on every two batches
     )
     data_module = IDDDataModule(
-        data_dir, augmentations, config["batch_size"], config["num_workers"], channels
+        data_dir,
+        augmentations,
+        config["train_batch_size"],
+        config["val_batch_size"],
+        config["test_batch_size"],
+        config["num_workers"],
+        channels,
     )
     if frozen_start:
         trainer.fit_loop.max_epochs = frozen_epochs

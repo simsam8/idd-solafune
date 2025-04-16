@@ -1,20 +1,25 @@
 import lightning as pl
 import segmentation_models_pytorch as smp
 import torch
+from timm.optim._optim_factory import create_optimizer_v2
+from timm.scheduler.scheduler_factory import create_scheduler_v2
 
 from trans_unet.model import TransUNet
 
 
 class Model(pl.LightningModule):
-    def __init__(self, config):
+    def __init__(self, config, epochs):
         super().__init__()
         self.save_hyperparameters()
 
         self.lr = config["lr"]
         self.weight_decay = config["weight_decay"]
-        self.batch_size = config["batch_size"]
+        self.train_batch_size = config["train_batch_size"]
+        self.val_batch_size = config["val_batch_size"]
+        self.test_batch_size = config["test_batch_size"]
         self.num_workers = config["num_workers"]
         self.class_names = ["grassland_shrubland", "logging", "mining", "plantation"]
+        self.epochs = epochs
 
         if config["model_type"] == "pt_seg":
             self.model = smp.create_model(**config["model_params"])
@@ -66,7 +71,7 @@ class Model(pl.LightningModule):
 
         self.log(
             f"{stage}/loss",
-            loss,
+            loss.detach().cpu(),
             sync_dist=True,
             prog_bar=False,
             # on_epoch=True,
@@ -86,8 +91,8 @@ class Model(pl.LightningModule):
             self.log(
                 f"{stage}/{name}",
                 # tensor.to(self.device),
-                tensor,
-                sync_dist=False,
+                tensor.detach().cpu(),
+                sync_dist=True,
                 prog_bar=prog_bar,
                 # on_epoch=True,
             )
@@ -107,7 +112,7 @@ class Model(pl.LightningModule):
 
         f1_avg = torch.stack([v for v in f1_scores.values()]).mean()
         log("f1", f1_avg, prog_bar=True)
-        return outputs
+        # return outputs
 
     def on_train_epoch_end(self):
         self.shared_epoch_end(self.training_step_outputs, "train")
@@ -118,8 +123,37 @@ class Model(pl.LightningModule):
         self.validation_step_outputs.clear()
 
     def configure_optimizers(self):
-        return torch.optim.Adam(
+        optimizer = create_optimizer_v2(
             self.parameters(),
+            opt="adamw",
             lr=self.lr,
             weight_decay=self.weight_decay,
+            filter_bias_and_bn=True,  # filter out bias and batchnorm from weight decay
         )
+
+        # lr scheduler
+        scheduler, _ = create_scheduler_v2(
+            optimizer,
+            sched="cosine",
+            num_epochs=self.epochs,
+            min_lr=0.0,
+            warmup_lr=1e-5,
+            warmup_epochs=0,
+            warmup_prefix=False,
+            step_on_epochs=True,
+        )
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "epoch",
+            },
+        }
+
+    def lr_scheduler_step(self, scheduler, metric):
+        # workaround for timm's scheduler:
+        # https://github.com/Lightning-AI/lightning/issues/5555#issuecomment-1065894281
+        scheduler.step(
+            epoch=self.current_epoch
+        )  # timm's scheduler need the epoch value       )
