@@ -20,6 +20,7 @@ unet = {
     "val_batch_size": 8,
     "test_batch_size": 8,
     "num_workers": 12,
+    "batch_accumulation": 2
 }
 
 deeplab = {
@@ -35,6 +36,7 @@ deeplab = {
     "val_batch_size": 8,
     "test_batch_size": 8,
     "num_workers": 12,
+    "batch_accumulation": 2
 }
 
 segformer = {
@@ -42,14 +44,15 @@ segformer = {
     "model_type": "pt_seg",
     "model_params": {
         "arch": "segformer",
-        "encoder_name": "resnet50",
+        "encoder_name": "mit_b5",
         "encoder_weights": "imagenet",
         "classes": 4,
     },
-    "train_batch_size": 4,
-    "val_batch_size": 4,
-    "test_batch_size": 4,
+    "train_batch_size": 3,
+    "val_batch_size": 1,
+    "test_batch_size": 3,
     "num_workers": 12,
+    "batch_accumulation": 5
 }
 
 transunet = {
@@ -62,6 +65,7 @@ transunet = {
     "val_batch_size": 1,
     "test_batch_size": 3,
     "num_workers": 12,
+    "batch_accumulation": 5
 }
 
 raytune_config = {

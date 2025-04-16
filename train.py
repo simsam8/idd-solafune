@@ -79,7 +79,9 @@ def pl_trainer(
         strategy="auto",
         log_every_n_steps=5,
         enable_progress_bar=True,
-        accumulate_grad_batches=2,  # Update on every two batches
+        accumulate_grad_batches=config[
+            "batch_accumulation"
+        ],  # Update on every n batches
     )
     data_module = IDDDataModule(
         data_dir,
