@@ -39,6 +39,15 @@ segformer = {
     "num_workers": 6,
 }
 
+vit_seg = {
+    "model_type": "vit_seg",
+    "model_params": {},
+    "lr": 1e-4,
+    "batch_size": 4,
+    "weight_decay": 1e-5,
+    "num_workers": 6,
+}
+
 raytune_config = {
     "model_type": "pt_seg",
     "model_params": tune.choice(

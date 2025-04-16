@@ -26,12 +26,6 @@ augmentations = albu.Compose(
             fill_mask=0,
             interpolation=2,  # bicubic
         ),
-        # random crop
-        albu.RandomCrop(
-            p=1,
-            width=512,
-            height=512,
-        ),
         # flip, transpose, and rotate90
         albu.HorizontalFlip(p=0.5),
         albu.VerticalFlip(p=0.5),

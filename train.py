@@ -11,6 +11,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 import configs
 from datasets import IDDDataModule
 from Models import Model
+import torch
 
 seed_everything(367)
 
@@ -27,12 +28,6 @@ augmentations = albu.Compose(
             fill_mask=0,
             interpolation=2,  # bicubic
         ),
-        # random crop
-        albu.RandomCrop(
-            p=1,
-            width=512,
-            height=512,
-        ),
         # flip, transpose, and rotate90
         albu.HorizontalFlip(p=0.5),
         albu.VerticalFlip(p=0.5),
@@ -40,7 +35,6 @@ augmentations = albu.Compose(
         albu.RandomRotate90(p=0.5),
     ]
 )
-
 
 def pl_trainer(config, data_dir, epochs=10):
     model = Model(config)
@@ -63,7 +57,7 @@ def pl_trainer(config, data_dir, epochs=10):
         deterministic=True,
         benchmark=False,
         sync_batchnorm=False,
-        check_val_every_n_epoch=5,
+        check_val_every_n_epoch=1, # To evaluate after every epoch to find the best epoch 
         default_root_dir=os.getcwd(),
         accelerator="auto",
         devices="auto",
@@ -76,11 +70,10 @@ def pl_trainer(config, data_dir, epochs=10):
     )
     trainer.fit(model, datamodule=data_module)
 
-
 def main(args):
+    torch.cuda.empty_cache()
     data_path = Path("data/").absolute()
     pl_trainer(getattr(configs, args.config), data_path, epochs=int(args.epochs))
-
 
 if __name__ == "__main__":
     parser = ArgumentParser()
