@@ -1,5 +1,6 @@
 import json
 import os
+from argparse import ArgumentParser
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +14,6 @@ from tqdm import tqdm
 
 from datasets import TestDataset, TrainValDataset
 from Models import Model
-from argparse import ArgumentParser
 
 
 def run_inference(model, loader, pred_output_dir):
@@ -183,21 +183,21 @@ def run_test(data_root, model, class_names, score_thresh, min_area):
 def main(args):
     data_root = Path("./data")
 
-    # train_output_dir = data_root / "training_result"
     class_names = ["grassland_shrubland", "logging", "mining", "plantation"]
 
-    # TODO: Change to config file later
     # model = load_model("./models/4dfa1_00001_valf1_52.80/")
     model = Model.load_from_checkpoint(
-        # "./lightning_logs/version_3/checkpoints/epoch=5-step=144.ckpt"
         args.model_checkpoint
     )
-    model = model.cuda()
+    if torch.cuda.is_available():
+        model = model.cuda()
+    else:
+        model = model.cpu()
     model.eval()
 
     score_thresh = 0.5  # threshold to binarize the prediction mask
     # if the predicted area of a class is less than this,
-    # submit an zero mask because small predicted areas are often false positives
+    # submit a zero mask because small predicted areas are often false positives
     min_area = 10000
 
     run_validation(data_root, model, class_names, score_thresh, min_area)
