@@ -82,14 +82,17 @@ We have used this github repo as a baseline for our pipeline.[^2]
 
 The following pre-processing steps were applied consistently across all models:
 
-- Label Generation: Ground-truth masks were generated from the Solafune competition data, ensuring consistent class mappings.
+- Label Generation: Ground-truth masks were generated from the Solafune competition data,
+ensuring consistent class mappings.
 - Image Augmentation: We applied several augmentation techniques to improve model robustness, including:
   - Random horizontal and vertical flips
   - Random brightness and contrast adjustments
   - Random rotations and shifts
 - Random Cropping:
-  - For most models, we performed random cropping to half the original image size to increase data variability and focus on finer details.
-  - For the Vision Transformer (ViT) model, we retained full image size due to the model's architectural sensitivity to input size.
+  - For most models, we performed random cropping to half the original image size
+  to increase data variability and focus on finer details.
+  - For the Vision Transformer (ViT) model, we retained full image size
+  due to the model's architectural sensitivity to input size.
 - Normalization:
   - Images were normalized using mean and standard deviation values calculated from the training dataset.
   - Normalization values depend on the number of input channels (e.g., RGB only or RGB + NIR).
@@ -119,31 +122,46 @@ their respective papers and source code.
 
 ### Segformer
 
-SegFormer [@xie2021segformer] is a more efficient model for semantic segmentation that combines the strengths of transformer-based architectures with hierarchical representations typically seen in convolutional networks. For this project, I selected SegFormer as my individual contribution, with the aim of improving the model‚Äôs ability to identify deforestation drivers from satellite imagery in the Solafune competition. 
+SegFormer [@xie2021segformer] is a more efficient model for semantic segmentation that
+combines the strengths of transformer-based architectures with hierarchical
+representations typically seen in convolutional networks.
+For this project, I selected SegFormer as my individual contribution,
+with the aim of improving the model‚Äôs ability to identify deforestation
+drivers from satellite imagery in the Solafune competition. 
 
-### Model Architecture
+#### Model Architecture
 
 SegFormer is composed of two main components:
 
 1. Mix Transformer (MiT) Encoder:
-    - The encoder is built on a Transformer-based backbone specifically designed for efficient visual representation learning.
-    - Unlike classical Vision Transformers, SegFormer avoids explicit positional encodings, making it more robust to varying image resolutions.
-    - It uses overlapping patch embeddings and a hierarchical structure to effectively capture both local and global contexts in the image.
+    - The encoder is built on a Transformer-based backbone specifically
+    designed for efficient visual representation learning.
+    - Unlike classical Vision Transformers, SegFormer avoids explicit positional encodings,
+    making it more robust to varying image resolutions.
+    - It uses overlapping patch embeddings and a hierarchical structure to
+    effectively capture both local and global contexts in the image.
 2. All-MLP Decoder:
-    - The decoder consists solely of lightweight Multi-Layer Perceptrons (MLPs), which fuse multi-scale features extracted by the encoder.
-    - This results in a simple yet highly performant decoding module with low computational overhead, making the model suitable even for resourc constrained environments.
+    - The decoder consists solely of lightweight Multi-Layer Perceptrons (MLPs),
+    which fuse multi-scale features extracted by the encoder.
+    - This results in a simple yet highly performant decoding module with low computational overhead,
+    making the model suitable even for resourc constrained environments.
 
-### Implementation
+#### Implementation
 
-To integrate SegFormer into our pipeline, I used the implementation provided by the *segmentation_models* [@Iakubovskii:2019] library. This choice offered a modular and well-tested framework for segmentation models, enabling easy training and experimentation.
+To integrate SegFormer into our pipeline, I used the implementation provided
+by the *segmentation_models* [@Iakubovskii:2019] library.
+This choice offered a modular and well-tested framework for segmentation models,
+enabling easy training and experimentation.
 
-### Why SegFormer?
+#### Why SegFormer?
 
 SegFormer was chosen for several reasons:
 
-- It strikes an excellent balance between accuracy and efficiency, making it suitable for satellite image segmentation where high resolution and scale variation are common.
+- It strikes an excellent balance between accuracy and efficiency,
+making it suitable for satellite image segmentation where high resolution and scale variation are common.
 - The model is available in multiple sizes (B0-B5), allowing flexibility depending on hardware constraints.
-- It has achieved strong results on benchmarks such as Cityscapes and ADE20K, indicating strong generalization across segmentation tasks.
+- It has achieved strong results on benchmarks such as Cityscapes and ADE20K,
+indicating strong generalization across segmentation tasks.
 
 ### TransUNet
 
