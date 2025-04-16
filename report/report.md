@@ -78,6 +78,19 @@ TODO:
 
 We have used this github repo as a baseline for our pipeline.[^2]
 
+## Pre-processing
+
+- Generate masks/labels from competition data
+- Apply image augmentations
+- normalize image using mean and std calculated from training images.
+    depends on number of channels used.
+
+## Post-processing
+
+- scoring threshold of 0.5. 
+- A minimum area 10000 to count valid masks.
+
+
 [^2]: [Basline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
 
 ## Vision Transformer
@@ -100,9 +113,26 @@ TODO:
 TransUNet is very similar to its predecessor UNet. It consists of an encoder and decoder.
 The main difference in TransUNet is the Introduction of a transformer in the encoder.
 
+- Run with frozen start on N first epochs
+
 ![TransUNet architecture [@chen2021transunet]](../trans_unet/img/transunet.png)
 
 ## Training and Evaluation
+
+- Batch accumulation depending on batch size for model. 16 or 15 batches.
+- Cosine learning rate scheduler form `timm`
+- Trained models on RGB and all channels
+- evaluation on f1 score
+
+Parameters(million)
+
+| Model | RGB | Full |
+| --------------- | --------------- | --------------- |
+| UNet | 32.5 | 32.5 |
+| DeepLabV3+ | 26.7 | 26.7 |
+| Vision Transformer | Item2.2 | Item3.2 |
+| Segformer | 82.0 | Item3.3 |
+| Transunet | Item2.4 | Item3.4 |
 
 
 # Results
