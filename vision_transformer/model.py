@@ -6,7 +6,7 @@ from torchvision.models import ViT_B_16_Weights, vit_b_16
 
 # Vision Transformer for 12-channel input and 4-class output
 class ViTSegmentation(nn.Module):
-    def __init__(self):
+    def __init__(self, in_channels):
         super().__init__()
         # Loading pre-trained ViT-B/16 model (ImageNet-1k weights)
         vit = vit_b_16(
@@ -20,7 +20,7 @@ class ViTSegmentation(nn.Module):
 
         # Createing new conv with 12 input channels
         new_conv = nn.Conv2d(
-            in_channels=12,
+            in_channels=in_channels,
             out_channels=old_conv.out_channels,
             kernel_size=old_conv.kernel_size,
             stride=old_conv.stride,
@@ -29,7 +29,7 @@ class ViTSegmentation(nn.Module):
         )
         # Initialize new conv weights using the mean of pretrained RGB weights (replicated for all 12 channels)
         new_weight = old_weight.mean(dim=1, keepdim=True).repeat(
-            1, 12, 1, 1
+            1, in_channels, 1, 1
         )  # shape (768,12,16,16)
         new_conv.weight.data.copy_(new_weight)
         if old_conv.bias is not None:

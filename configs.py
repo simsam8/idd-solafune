@@ -61,11 +61,11 @@ transunet = {
     "model_params": {
         "segmentation_channels": 4,
     },
-    "train_batch_size": 3,
+    "train_batch_size": 2,
     "val_batch_size": 1,
     "test_batch_size": 3,
     "num_workers": 12,
-    "batch_accumulation": 5
+    "batch_accumulation": 8
 }
 
 vit_seg = {

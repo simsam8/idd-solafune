@@ -43,7 +43,7 @@ class Model(pl.LightningModule):
         elif config["model_type"] == "transunet":
             self.model = TransUNet(config["model_params"]["in_channels"], 4)
         elif config["model_type"] == "vit_seg":
-            self.model = ViTSegmentation()
+            self.model = ViTSegmentation(config["model_params"]["in_channels"])
 
         self.dice_loss_fn = smp.losses.DiceLoss(
             mode=smp.losses.MULTILABEL_MODE, from_logits=True
