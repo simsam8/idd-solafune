@@ -218,6 +218,8 @@ def main():
 
     # if the predicted area of a class is less than this,
     # submit a zero mask because small predicted areas are often false positives
+    # Set to zero keep all predictions
+    # min_area = 0
     min_area = 10000
 
     best_model = run_selection(
