@@ -90,7 +90,7 @@ We have used this github repo as a baseline for our pipeline.[^2]
 ## Post-processing
 
 - scoring threshold of 0.5. 
-- A minimum area 10000 to count valid masks.
+- A minimum area 10000 to count valid masks (this is not applied during training).
 
 
 [^2]: [Basline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
@@ -145,6 +145,31 @@ TODO:
 - What we found
 - Which model performs the best
 - Follow structure of methods section
+
+
+## Affect of adding minimum area
+
+- Models improves by adding minimum area, especially TransUNet  
+
+| Model           | Without min area | With min area |
+| --------------- | --------------- | --------------- |
+| transunet_rgb   | 0.2089 | 0.6414 |
+| transunet_full  | 0.2456 | 0.5915 |
+| deeplab_rgb     | 0.6289 | 0.7159 |
+| unet_full       | 0.6303 | 0.6906 |
+| unet_rgb        | 0.5961 | 0.6917 |
+| vit_seg_full    | 0.6098 | 0.7072 |
+| deeplab_full    | 0.6520 | 0.7367 |
+| segformer_full  | 0.6302 | 0.7048 |
+| vit_seg_rgb     | 0.6652 | 0.7200 |
+| segformer_rgb   | 0.6174 | 0.7029 |
+| ensemble_rgb    | 0.6727 | 0.7182 |
+| ensemble_full   | 0.6706 | 0.7335 |
+
+
+![Segmentations using all channels](./imgs/val_preds_full.png)
+
+![Segmentations using rgb channels](./imgs/val_preds_rgb.png)
 
 # Discussion
 
