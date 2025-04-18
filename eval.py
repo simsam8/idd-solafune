@@ -1,6 +1,5 @@
 import json
 import os
-from argparse import ArgumentParser
 from pathlib import Path
 
 import numpy as np
@@ -13,10 +12,11 @@ from skimage import measure
 from tqdm import tqdm
 
 from datasets import TestDataset, TrainValDataset
-from Models import Model
+from utils import load_models
 
 
 def run_inference(model, loader, pred_output_dir):
+    # def run_inference(model, loader):
     pred_output_dir = Path(pred_output_dir)
     pred_output_dir.mkdir(exist_ok=True, parents=True)
 
@@ -93,23 +93,26 @@ def detect_polygons(pred_dir, score_thresh, min_area, class_names):
     return polygons_all_imgs
 
 
-def run_validation(data_root, model, class_names, score_thresh, min_area):
+def run_validation(
+    data_root, model, model_name, class_names, score_thresh, min_area, channels
+):
     sample_indices = list(range(176))  # train_0.tif to train_175.tif
     _, val_indices = sklearn.model_selection.train_test_split(
         sample_indices, test_size=0.2, random_state=42
     )
+
+    val_data = TrainValDataset(
+        data_root, val_indices, augmentations=None, channels=channels
+    )
+
     val_loader = torch.utils.data.DataLoader(
-        TrainValDataset(
-            data_root,
-            val_indices,
-            augmentations=None,
-        ),
-        batch_size=6,
-        num_workers=6,
+        val_data,
+        batch_size=1,
+        num_workers=10,
         shuffle=False,
     )
 
-    val_pred_dir = data_root / "val_preds"
+    val_pred_dir = data_root / "val_preds" / model_name
     run_inference(model, val_loader, val_pred_dir)
 
     val_f1_scores = {}
@@ -138,14 +141,16 @@ def run_validation(data_root, model, class_names, score_thresh, min_area):
     # add a row for average of all the val images
     val_f1_scores.loc["all_images"] = val_f1_scores.mean()
 
-    print(f"val f1 score: {val_f1_scores.loc['all_images', 'all_classes']:.4f}")
+    final_val_f1 = val_f1_scores.loc["all_images", "all_classes"]
+    print(f"val f1 score: {final_val_f1:.4f}")
+    return final_val_f1
 
 
 def run_test(data_root, model, class_names, score_thresh, min_area):
     test_loader = torch.utils.data.DataLoader(
         TestDataset(data_root),
-        batch_size=4,
-        num_workers=8,
+        batch_size=1,
+        num_workers=10,
         shuffle=False,
     )
 
@@ -180,31 +185,51 @@ def run_test(data_root, model, class_names, score_thresh, min_area):
         json.dump({"images": images}, f, indent=4)
 
 
-def main(args):
-    data_root = Path("./data")
+def run_selection(data_root, names, models, class_names, threshold=0.5, min_area=10000):
 
+    f1_score = []
+    for model_name, model in zip(names, models):
+        print(model_name)
+        model.eval()
+
+        channels = "rgb" if model_name.endswith("rgb") else "full"
+
+        with torch.no_grad():
+            score = run_validation(
+                data_root, model, model_name, class_names, threshold, min_area, channels
+            )
+            f1_score.append(score)
+
+    best_idx = np.argmax(f1_score)
+
+    print(f"Best model: {names[best_idx]}")
+    print(f"F1 score: {f1_score[best_idx]}")
+    return models[best_idx]
+
+
+def main():
+    data_root = Path("./data")
+    models_path = Path("./data/training_result/")
     class_names = ["grassland_shrubland", "logging", "mining", "plantation"]
 
-    # model = load_model("./models/4dfa1_00001_valf1_52.80/")
-    model = Model.load_from_checkpoint(
-        args.model_checkpoint
-    )
-    if torch.cuda.is_available():
-        model = model.cuda()
-    else:
-        model = model.cpu()
-    model.eval()
+    model_names, models_list = load_models(models_path)
 
     score_thresh = 0.5  # threshold to binarize the prediction mask
+
     # if the predicted area of a class is less than this,
     # submit a zero mask because small predicted areas are often false positives
     min_area = 10000
 
-    run_validation(data_root, model, class_names, score_thresh, min_area)
-    run_test(data_root, model, class_names, score_thresh, min_area)
+    best_model = run_selection(
+        data_root,
+        model_names,
+        models_list,
+        class_names,
+        threshold=score_thresh,
+        min_area=min_area,
+    )
+    run_test(data_root, best_model, class_names, score_thresh, min_area)
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("model_checkpoint")
-    main(parser.parse_args())
+    main()

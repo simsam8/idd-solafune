@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ray.train import Checkpoint
 
+from ensemble import EnsembleModel
 from Models import Model
 
 
@@ -35,14 +36,32 @@ def convert_to_geojson(data):
 
 def load_model(model_path):
     model_path = Path(model_path)
-    model_name = f"{model_path.name}.json"
-    with open(model_path / model_name, "r") as f:
-        settings = json.load(f)
-
-    model = Model.load_from_checkpoint(
-        model_path / "checkpoint.ckpt", config=settings["config"]
-    )
+    model = Model.load_from_checkpoint(model_path / "best_f1.ckpt")
     return model
+
+
+def load_models(models_path):
+    names = []
+    models = []
+    models_rgb = []
+    models_full = []
+    for model_name in os.listdir(models_path):
+        model = load_model(models_path / model_name)
+        names.append(model_name)
+        models.append(model)
+
+        if model_name.endswith("rgb"):
+            models_rgb.append(model)
+        else:
+            models_full.append(model)
+
+    # Create ensemble of all models models
+    names.append("ensemble_rgb")
+    models.append(EnsembleModel(models_rgb))
+
+    names.append("ensemble_full")
+    models.append(EnsembleModel(models_full))
+    return names, models
 
 
 def save_checkpoint(checkpoint_path, target_path):
