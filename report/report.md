@@ -119,6 +119,11 @@ The main difference in TransUNet is the Introduction of a transformer in the enc
 
 ![TransUNet architecture [@chen2021transunet]](../trans_unet/img/transunet.png)
 
+## Ensemble Models
+
+We create two ensemble models, one with all models called ensemble1 and one without TransUNet called ensemble2.
+Ensemble models average the output logits of all its models. 
+
 ## Training and Evaluation
 
 - Batch accumulation depending on batch size for model. 16 or 15 batches.
@@ -153,7 +158,7 @@ TODO:
 
 | Model           | Without min area | With min area |
 | --------------- | --------------- | --------------- |
-| transunet_rgb   | 0.2089 | 0.6414 |
+| transunet_rgb   | 0.2089 | 0.6514 |
 | transunet_full  | 0.2456 | 0.5915 |
 | deeplab_rgb     | 0.6289 | 0.7159 |
 | unet_full       | 0.6303 | 0.6906 |
@@ -163,8 +168,10 @@ TODO:
 | segformer_full  | 0.6302 | 0.7048 |
 | vit_seg_rgb     | 0.6652 | 0.7200 |
 | segformer_rgb   | 0.6174 | 0.7029 |
-| ensemble_rgb    | 0.6727 | 0.7182 |
-| ensemble_full   | 0.6706 | 0.7335 |
+| ensemble1_rgb    | 0.6727 | 0.7182 |
+| ensemble1_full   | 0.6706 | 0.7335 |
+| ensemble2_rgb    | 0.6725 | 0.7180 |
+| ensemble2_full   | 0.6698 | 0.7327 |
 
 
 ![Segmentations using all channels](./imgs/val_preds_full.png)
