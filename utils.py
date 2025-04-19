@@ -39,24 +39,34 @@ def load_model(model_path):
 def load_models(models_path):
     names = []
     models = []
-    models_rgb = []
-    models_full = []
+    ensemble1_rgb = []
+    ensemble1_full = []
+    ensemble2_rgb = []
+    ensemble2_full = []
     for model_name in os.listdir(models_path):
         model = load_model(models_path / model_name)
         names.append(model_name)
         models.append(model)
 
         if model_name.endswith("rgb"):
-            models_rgb.append(model)
+            ensemble1_rgb.append(model)
+            if not model_name.startswith("transunet"):
+                ensemble2_rgb.append(model)
         else:
-            models_full.append(model)
+            ensemble1_full.append(model)
+            if not model_name.startswith("transunet"):
+                ensemble2_full.append(model)
 
     # Create ensemble of all models models
-    names.append("ensemble_rgb")
-    models.append(EnsembleModel(models_rgb))
+    names.append("ensemble1_rgb")
+    models.append(EnsembleModel(ensemble1_rgb))
+    names.append("ensemble1_full")
+    models.append(EnsembleModel(ensemble1_full))
 
-    names.append("ensemble_full")
-    models.append(EnsembleModel(models_full))
+    names.append("ensemble2_rgb")
+    models.append(EnsembleModel(ensemble2_rgb))
+    names.append("ensemble2_full")
+    models.append(EnsembleModel(ensemble2_full))
     return names, models
 
 
