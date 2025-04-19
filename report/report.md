@@ -138,8 +138,8 @@ Parameters(million)
 | --------------- | --------------- | --------------- |
 | UNet | 32.5 | 32.5 |
 | DeepLabV3+ | 26.7 | 26.7 |
-| Vision Transformer | 88.8 | 90.6 |
 | Segformer | 82.0 | 82.0 |
+| Vision Transformer | 88.8 | 90.6 |
 | Transunet | 105 | 105 |
 
 
@@ -158,25 +158,35 @@ TODO:
 
 | Model           | Without min area | With min area |
 | --------------- | --------------- | --------------- |
-| transunet_rgb   | 0.2089 | 0.6514 |
-| transunet_full  | 0.2456 | 0.5915 |
-| deeplab_rgb     | 0.6289 | 0.7159 |
-| unet_full       | 0.6303 | 0.6906 |
 | unet_rgb        | 0.5961 | 0.6917 |
-| vit_seg_full    | 0.6098 | 0.7072 |
-| deeplab_full    | 0.6520 | 0.7367 |
-| segformer_full  | 0.6302 | 0.7048 |
-| vit_seg_rgb     | 0.6652 | 0.7200 |
+| deeplab_rgb     | 0.6289 | 0.7159 |
 | segformer_rgb   | 0.6174 | 0.7029 |
-| ensemble1_rgb    | 0.6727 | 0.7182 |
-| ensemble1_full   | 0.6706 | 0.7335 |
+| vit_seg_rgb     | 0.6652 | 0.7200 |
+| transunet_rgb   | 0.2089 | 0.6514 |
+| ensemble1_rgb    | **0.6727** | 0.7182 |
 | ensemble2_rgb    | 0.6725 | 0.7180 |
+| unet_full       | 0.6303 | 0.6906 |
+| deeplab_full    | 0.6520 | **0.7367** |
+| segformer_full  | 0.6302 | 0.7048 |
+| vit_seg_full    | 0.6098 | 0.7072 |
+| transunet_full  | 0.2456 | 0.5915 |
+| ensemble1_full   | 0.6706 | 0.7335 |
 | ensemble2_full   | 0.6698 | 0.7327 |
 
 
 ![Segmentations using all channels](./imgs/val_preds_full.png)
 
 ![Segmentations using rgb channels](./imgs/val_preds_rgb.png)
+
+![Learning rate over time](./imgs/lr.png)
+
+![Overall training f1 score](./imgs/train_f1.png)
+
+![Overall validation f1 score](./imgs/val_f1.png)
+
+![Training f1 score for all classes](./imgs/train_f1_classes.png)
+
+![Validation f1 score for all classes](./imgs/val_f1_classes.png)
 
 # Discussion
 
