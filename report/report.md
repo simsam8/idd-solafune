@@ -112,12 +112,26 @@ TODO:
 - Skip connections
 - CUP (Cascaded Upsampler)
 
-TransUNet is very similar to its predecessor UNet. It consists of an encoder and decoder.
-The main difference in TransUNet is the Introduction of a transformer in the encoder.
+TransUNet is very similar to its predecessor UNet.
+It consists of an encoder and decoder architecture,
+where the main difference is the introduction of a
+transformer in the encoder as seen in \ref{transunet}. 
+The decoder block called CUP, short for Cascaded Upsampler,
+consists of multiple upsampling blocks,
+which is made up of a 2x bilinear upsampler followed by two 
+convolutional blocks.
+The decoder also uses skip connections from the CNN encoder,
+and passes them into the first convolutional block in the 
+corresponding upsampling stage.
 
-- Run with frozen start on N first epochs
+In our implementation we use ResNet50-VisionTransformer for the hybrid encoder, using pre-trained weights loaded from the `timm` library.
+We implement the base version of TransUNet as they do in [@chen2021transunet].
+As we have are using more than three channels in the input, we had to 
+replace the first layer of the resnet encoder. Otherwise the 
+hybrid-encoder remains unmodified.
 
-![TransUNet architecture [@chen2021transunet]](../trans_unet/img/transunet.png)
+
+![TransUNet architecture [@chen2021transunet]\label{transunet}](../trans_unet/img/transunet.png)
 
 ## Ensemble Models
 
@@ -134,14 +148,28 @@ Ensemble models average the output logits of all its models.
 
 Parameters(million)
 
-| Model | RGB | Full |
-| --------------- | --------------- | --------------- |
-| UNet | 32.5 | 32.5 |
-| DeepLabV3+ | 26.7 | 26.7 |
-| Segformer | 82.0 | 82.0 |
-| Vision Transformer | 88.8 | 90.6 |
-| Transunet | 105 | 105 |
+<!--| Model | RGB | Full |-->
+<!--| --------------- | --------------- | --------------- |-->
+<!--| UNet | 32.5 | 32.5 |-->
+<!--| DeepLabV3+ | 26.7 | 26.7 |-->
+<!--| Segformer | 82.0 | 82.0 |-->
+<!--| Vision Transformer | 88.8 | 90.6 |-->
+<!--| Transunet | 105 | 105 |-->
 
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{lll}
+    \hline
+        \textbf{Model} & \textbf{RGB} & \textbf{Full} \\ \hline
+        UNet & 32.5 & 32.5 \\ 
+        DeepLabV3+ & 26.7 & 26.7 \\ 
+        Segformer & 82.0 & 82.0 \\ 
+        Vision Transformer & 88.8 & 90.6 \\ 
+        Transunet & 105 & 105 \\ \hline
+    \end{tabular}
+    \caption{Parameters sizes for models with 3 and 12 channels}
+    \label{param_size}
+\end{table}
 
 # Results
 
@@ -156,23 +184,46 @@ TODO:
 
 - Models improves by adding minimum area, especially TransUNet  
 
-| Model           | Without min area | With min area |
-| --------------- | --------------- | --------------- |
-| unet_rgb        | 0.5961 | 0.6917 |
-| deeplab_rgb     | 0.6289 | 0.7159 |
-| segformer_rgb   | 0.6174 | 0.7029 |
-| vit_seg_rgb     | 0.6652 | 0.7200 |
-| transunet_rgb   | 0.2089 | 0.6514 |
-| ensemble1_rgb    | **0.6727** | 0.7182 |
-| ensemble2_rgb    | 0.6725 | 0.7180 |
-| unet_full       | 0.6303 | 0.6906 |
-| deeplab_full    | 0.6520 | **0.7367** |
-| segformer_full  | 0.6302 | 0.7048 |
-| vit_seg_full    | 0.6098 | 0.7072 |
-| transunet_full  | 0.2456 | 0.5915 |
-| ensemble1_full   | 0.6706 | 0.7335 |
-| ensemble2_full   | 0.6698 | 0.7327 |
+<!--| Model           | Without min area | With min area |-->
+<!--| --------------- | --------------- | --------------- |-->
+<!--| unet_rgb        | 0.5961 | 0.6917 |-->
+<!--| deeplab_rgb     | 0.6289 | 0.7159 |-->
+<!--| segformer_rgb   | 0.6174 | 0.7029 |-->
+<!--| vit_seg_rgb     | 0.6652 | 0.7200 |-->
+<!--| transunet_rgb   | 0.2089 | 0.6514 |-->
+<!--| ensemble1_rgb    | **0.6727** | 0.7182 |-->
+<!--| ensemble2_rgb    | 0.6725 | 0.7180 |-->
+<!--| unet_full       | 0.6303 | 0.6906 |-->
+<!--| deeplab_full    | 0.6520 | **0.7367** |-->
+<!--| segformer_full  | 0.6302 | 0.7048 |-->
+<!--| vit_seg_full    | 0.6098 | 0.7072 |-->
+<!--| transunet_full  | 0.2456 | 0.5915 |-->
+<!--| ensemble1_full   | 0.6706 | 0.7335 |-->
+<!--| ensemble2_full   | 0.6698 | 0.7327 |-->
 
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{lll}
+    \hline
+        Model & Without min area & With min area \\ \hline
+        unet\_rgb & 0.5961 & 0.6917 \\ 
+        deeplab\_rgb & 0.6289 & 0.7159 \\ 
+        segformer\_rgb & 0.6174 & 0.7029 \\ 
+        vit\_seg\_rgb & 0.6652 & 0.7200 \\ 
+        transunet\_rgb & 0.2089 & 0.6514 \\ 
+        ensemble1\_rgb & \textbf{0.6727} & 0.7182 \\ 
+        ensemble2\_rgb & 0.6725 & 0.7180 \\ 
+        unet\_full & 0.6303 & 0.6906 \\ 
+        deeplab\_full & 0.6520 & \textbf{0.7367} \\ 
+        segformer\_full & 0.6302 & 0.7048 \\ 
+        vit\_seg\_full & 0.6098 & 0.7072 \\ 
+        transunet\_full & 0.2456 & 0.5915 \\ 
+        ensemble1\_full & 0.6706 & 0.7335 \\ 
+        ensemble2\_full & 0.6698 & 0.7327 \\ \hline
+    \end{tabular}
+    \caption{Validation f1 scores with and without min area of 10k}
+    \label{min_area_f1}
+\end{table}
 
 ![Segmentations using all channels](./imgs/val_preds_full.png)
 
