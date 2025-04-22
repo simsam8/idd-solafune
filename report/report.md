@@ -30,7 +30,7 @@ header-includes: |
     }
     \author[1]{Simon Vedaa}
     \author[1]{Khalil Ibrahim}
-    \author[1]{Safiya Mah}
+    \author[1]{Safiya Mahamood}
     \affil[1]{University of Bergen}
 ---
 
@@ -115,7 +115,7 @@ TODO:
 TransUNet is very similar to its predecessor UNet.
 It consists of an encoder and decoder architecture,
 where the main difference is the introduction of a
-transformer in the encoder as seen in \ref{transunet}. 
+transformer in the encoder as seen in figure \ref{transunet}. 
 The decoder block called CUP, short for Cascaded Upsampler,
 consists of multiple upsampling blocks,
 which is made up of a 2x bilinear upsampler followed by two 
@@ -135,8 +135,11 @@ hybrid-encoder remains unmodified.
 
 ## Ensemble Models
 
-We create two ensemble models, one with all models called ensemble1 and one without TransUNet called ensemble2.
+We create two ensemble models, one with all models called `ensemble1` and one without TransUNet called `ensemble2`.
 Ensemble models average the output logits of all its models. 
+The reasoning for this will become evident in the results section, but 
+in short TransUNet without any post-processing performed worse than all other 
+models.
 
 ## Training and Evaluation
 
@@ -167,7 +170,7 @@ Parameters(million)
         Vision Transformer & 88.8 & 90.6 \\ 
         Transunet & 105 & 105 \\ \hline
     \end{tabular}
-    \caption{Parameters sizes for models with 3 and 12 channels}
+    \caption{Number of parameters(millions) for models with RGB and all channels}
     \label{param_size}
 \end{table}
 
@@ -180,7 +183,7 @@ TODO:
 - Follow structure of methods section
 
 
-## Affect of adding minimum area
+## Effect of adding minimum area
 
 - Models improves by adding minimum area, especially TransUNet  
 
@@ -238,6 +241,8 @@ TODO:
 ![Training f1 score for all classes](./imgs/train_f1_classes.png)
 
 ![Validation f1 score for all classes](./imgs/val_f1_classes.png)
+
+![Training times](./imgs/training_time.png)
 
 # Discussion
 
