@@ -4,7 +4,6 @@
 
 In this competition, understanding the specific drivers behind deforestation – such as plantation expansion, logging, or mining – is key to addressing the problem effectively. Using sentinel 2-satelite imagery, the task involves segmenting deforested areas and assigning each region to one of four predefined driver classes. 
 We trained a semantic segmentation model based on the Vision Transformer (ViT) approach, specifically the ViT-B/16 variant, adapted from the paper “An Image is Worth 16x16 Words” by Dosovitskiy et al. While the original work was designed for image classification, we modified the architecture for segmentation tasks.
-
 Traditionally, CNN-based models like U-Net and DeepLab have dominated segmentation tasks, but recently, transformer-based architecture such as ViT have shown potential for capturing global context in image classification tasks.  
 The model is based on the original ViT-B/16 classification architecture for semantic segmentation by adapting its input and output layers. The model is initialized with ImageNet-1k pretrained weights and modified to handle 12-channel Sentinel-2 data to produce segmentation outputs instead of classification using a custom convolutional head. 
 
