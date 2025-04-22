@@ -234,7 +234,15 @@ We use the pixel-based F1 score as the evaluation metric, in line with the compe
 
 To reduce the impact of spurious predictions, we apply a post-processing threshold that removes predicted segments with an area smaller than 10,000 pixels. This *min_area* constraint helps suppress noise and false positives, particularly in models that tend to produce fragmented or uncertain predictions. We found that applying this threshold significantly improved F1 scores—especially for models like TransUNet.
 
-### Batch Accumulation
+### Batch Gradient Accumulation
+
+As some of the model are quite large, and we have limited resources.
+We decided to use batch gradient accumulation.
+Instead of using larger batches, we use smaller `k` batches 
+and accumulate the gradients of `N` batches before the backward pass. 
+The effective batch size then becomes `kxN`. All models are trained 
+on an effective batch size of either 15 or 16.
+We use pytorch lightning's built in batch gradient accumulation.
 
 ### Learning rate scheduler
 
