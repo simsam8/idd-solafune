@@ -80,12 +80,19 @@ We have used this github repo as a baseline for our pipeline.[^2]
 
 ## Pre-processing
 
-- Generate masks/labels from competition data
-- Apply image augmentations
-- We do random cropping on half the image size,
-    for all models but the Vision Transformer
-- normalize image using mean and std calculated from training images.
-    depends on number of channels used.
+The following pre-processing steps were applied consistently across all models:
+
+- Label Generation: Ground-truth masks were generated from the Solafune competition data, ensuring consistent class mappings.
+- Image Augmentation: We applied several augmentation techniques to improve model robustness, including:
+  - Random horizontal and vertical flips
+  - Random brightness and contrast adjustments
+  - Random rotations and shifts
+- Random Cropping:
+  - For most models, we performed random cropping to half the original image size to increase data variability and focus on finer details.
+  - For the Vision Transformer (ViT) model, we retained full image size due to the model's architectural sensitivity to input size.
+- Normalization:
+  - Images were normalized using mean and standard deviation values calculated from the training dataset.
+  - Normalization values depend on the number of input channels (e.g., RGB only or RGB + NIR).
 
 ## Post-processing
 
