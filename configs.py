@@ -1,5 +1,3 @@
-from ray import tune
-
 # Common parameters
 hyper_params = {
     "lr": 1e-4,
@@ -20,7 +18,7 @@ unet = {
     "val_batch_size": 8,
     "test_batch_size": 8,
     "num_workers": 12,
-    "batch_accumulation": 2
+    "batch_accumulation": 2,
 }
 
 deeplab = {
@@ -36,7 +34,7 @@ deeplab = {
     "val_batch_size": 8,
     "test_batch_size": 8,
     "num_workers": 12,
-    "batch_accumulation": 2
+    "batch_accumulation": 2,
 }
 
 segformer = {
@@ -52,7 +50,7 @@ segformer = {
     "val_batch_size": 1,
     "test_batch_size": 3,
     "num_workers": 12,
-    "batch_accumulation": 5
+    "batch_accumulation": 5,
 }
 
 transunet = {
@@ -65,7 +63,7 @@ transunet = {
     "val_batch_size": 1,
     "test_batch_size": 3,
     "num_workers": 12,
-    "batch_accumulation": 8
+    "batch_accumulation": 8,
 }
 
 vit_seg = {
@@ -76,33 +74,5 @@ vit_seg = {
     "val_batch_size": 1,
     "test_batch_size": 3,
     "num_workers": 12,
-    "batch_accumulation": 5
-}
-
-raytune_config = {
-    "model_type": "pt_seg",
-    "model_params": tune.choice(
-        [
-            {
-                "arch": "unet",
-                "encoder_name": "tu-tf_efficientnetv2_s",
-                "encoder_weights": "imagenet",
-                "in_channels": 12,
-                "classes": 4,
-            },
-            {
-                "arch": "deeplabv3plus",
-                "encoder_name": "resnet50",
-                "encoder_weights": "imagenet",
-                "in_channels": 12,
-                "classes": 4,
-            },
-        ]
-    ),
-    "lr": tune.uniform(1e-2, 1e-5),
-    # "batch_size": tune.choice([2]),
-    "batch_size": 2,
-    "weight_decay": tune.uniform(1e-2, 1e-5),
-    # "num_workers": tune.choice([10]),
-    "num_workers": 4,
+    "batch_accumulation": 5,
 }
