@@ -95,15 +95,26 @@ We have used this github repo as a baseline for our pipeline.[^2]
 
 [^2]: [Basline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
 
-## Vision Transformer
+## Model Architectures
+
+We have applied the following model architectures; UNet, DeepLabV3, VisionTransformer, 
+Segformer, and TransUNet.
+
+UNet, DeepLabV3, and Segformer are applied using the pytorch segmentation Models
+library[^3], while VisionTransformer and TransUNet are implement following 
+their respective papers and source code.
+
+[^3]: Link to the library can be found: [here](TODO: insert link here)
+
+### Vision Transformer
 
 [@dosovitskiy2020vit]
 
-## Segformer
+### Segformer
 
 [@xie2021segformer]
 
-## TransUNet
+### TransUNet
 
 TODO:
 
