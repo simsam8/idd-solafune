@@ -123,6 +123,8 @@ TODO:
 - Skip connections
 - CUP (Cascaded Upsampler)
 
+#### Architecture 
+
 TransUNet is very similar to its predecessor UNet.
 It consists of an encoder and decoder architecture,
 where the main difference is the introduction of a
@@ -135,11 +137,20 @@ The decoder also uses skip connections from the CNN encoder,
 and passes them into the first convolutional block in the 
 corresponding upsampling stage.
 
-In our implementation we use ResNet50-VisionTransformer for the hybrid encoder, using pre-trained weights loaded from the `timm` library.
+#### Implementation
+
+In our implementation we use ResNet50-VisionTransformer for the hybrid encoder,
+using pre-trained weights loaded from the `timm` library.
 We implement the base version of TransUNet as they do in [@chen2021transunet].
 As we have are using more than three channels in the input, we had to 
 replace the first layer of the resnet encoder. Otherwise the 
 hybrid-encoder remains unmodified.
+
+#### Motivation
+
+According to [@chen2021transunet], TransUNet is an improvement to UNet for the task of medical image 
+segmentation. Since we use UNet as one of our baseline models, we were interested 
+to see if we could get similar results for our task.
 
 
 ![TransUNet architecture [@chen2021transunet]\label{transunet}](../trans_unet/img/transunet.png)
@@ -160,7 +171,19 @@ models.
 - Frozen start on Transunet(15 epochs) and ViT(5 epochs)
 - evaluation on f1 score
 
-Parameters(million)
+### Hyperparameters
+
+### Loss and Metric
+
+### Batch Accumulation
+
+### Learning rate scheduler
+
+### Channel input
+
+### Frozen start
+
+
 
 <!--| Model | RGB | Full |-->
 <!--| --------------- | --------------- | --------------- |-->
