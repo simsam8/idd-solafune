@@ -111,10 +111,9 @@ We have applied the following model architectures; UNet, DeepLabV3, VisionTransf
 Segformer, and TransUNet.
 
 UNet, DeepLabV3, and Segformer are applied using the pytorch segmentation Models
-library[^3], while VisionTransformer and TransUNet are implement following 
+library[@Iakubovskii:2019], while VisionTransformer and TransUNet are implemented following 
 their respective papers and source code.
 
-[^3]: Link to the library can be found: [here](TODO: insert link here)
 
 ### Vision Transformer
 
@@ -177,7 +176,7 @@ TODO:
 TransUNet is very similar to its predecessor UNet.
 It consists of an encoder and decoder architecture,
 where the main difference is the introduction of a
-transformer in the encoder as seen in figure \ref{transunet}. 
+transformer in the encoder as seen in figure \ref{transunet_arch}. 
 The decoder block called CUP, short for Cascaded Upsampler,
 consists of multiple upsampling blocks,
 which is made up of a 2x bilinear upsampler followed by two 
@@ -202,7 +201,7 @@ segmentation. Since we use UNet as one of our baseline models, we were intereste
 to see if we could get similar results for our task.
 
 
-![TransUNet architecture [@chen2021transunet]\label{transunet}](../trans_unet/img/transunet.png)
+![TransUNet architecture [@chen2021transunet]\label{transunet_arch}](../trans_unet/img/transunet.png)
 
 ## Ensemble Models
 
@@ -242,13 +241,30 @@ Instead of using larger batches, we use smaller `k` batches
 and accumulate the gradients of `N` batches before the backward pass. 
 The effective batch size then becomes `kxN`. All models are trained 
 on an effective batch size of either 15 or 16.
-We use pytorch lightning's built in batch gradient accumulation.
+We used pytorch lightning's built in batch gradient accumulation.
 
 ### Learning rate scheduler
+
+![Learning rate over time](./imgs/lr.png)
 
 ### Channel input
 
 ### Frozen start
+
+
+### Training process
+
+Each model is trained for 200 epochs.
+During training we run the model on the validation set 
+every 5 epochs. The final version of the model we keep, 
+is the one that achieves the highest f1 score throuhout training.
+
+### Model Selection
+
+Once every model is finished training, we run them 
+through our post-processing step, and calculate their validation score.
+The model with the highest score is then choosen and used to generate 
+the final predictions for the test set, i.e. the competition submission.
 
 
 
@@ -286,8 +302,6 @@ TODO:
 
 ## Effect of adding minimum area
 
-- Models improves by adding minimum area, especially TransUNet  
-
 <!--| Model           | Without min area | With min area |-->
 <!--| --------------- | --------------- | --------------- |-->
 <!--| unet_rgb        | 0.5961 | 0.6917 |-->
@@ -304,6 +318,12 @@ TODO:
 <!--| transunet_full  | 0.2456 | 0.5915 |-->
 <!--| ensemble1_full   | 0.6706 | 0.7335 |-->
 <!--| ensemble2_full   | 0.6698 | 0.7327 |-->
+
+Adding a minimum area for segmentation predictions seems to improve 
+model performance quite a lot, as seen in table \ref{min_area_f1}.
+Suprisingly this more than doubled the performance of TransUNet.
+The idea is that removing small segmentations, reduces the 
+number of false positive predictions.
 
 \begin{table}[!ht]
     \centering
@@ -329,21 +349,51 @@ TODO:
     \label{min_area_f1}
 \end{table}
 
-![Segmentations using all channels](./imgs/val_preds_full.png)
+## Effect of channels
 
-![Segmentations using rgb channels](./imgs/val_preds_rgb.png)
+When comparing the models trained on only RGB channels and those trained on all channels,
+it seems that in general the performance improves, but only marginally.
 
-![Learning rate over time](./imgs/lr.png)
+When looking at figure \ref{full} and figure \ref{rgb}, both seem to produce
+similar segmentations. However, the models trained on only the RGB channels seem to
+predict more false positives as seen especially on the final row of predictions.
 
-![Overall training f1 score](./imgs/train_f1.png)
+![Segmentations using all channels\label{full}](./imgs/val_preds_full.png)
 
-![Overall validation f1 score](./imgs/val_f1.png)
+![Segmentations using rgb channels\label{rgb}](./imgs/val_preds_rgb.png)
 
-![Training f1 score for all classes](./imgs/train_f1_classes.png)
+## Training and validation performance
 
-![Validation f1 score for all classes](./imgs/val_f1_classes.png)
+Most of the models seem to converge around an F1-score of 0.8 during training
+and 0.6 on validation, as seen in figure \ref{f1_train} and figure \ref{f1_val}[^3].
+It is suprising to see that TransUNet performs so poorly compared to the other models,
+only achieving an F1 score of around 0.2 in both datasets.
 
-![Training times](./imgs/training_time.png)
+
+[^3]: The figures only show the results from models trained on all channels, but results 
+are similar for RGB as well.
+
+![Overall training f1 score\label{f1_train}](./imgs/train_f1.png)
+
+![Overall validation f1 score\label{f1_val}](./imgs/val_f1.png)
+
+
+
+![Training f1 score for all classes\label{f1_train_classes}](./imgs/train_f1_classes.png)
+
+![Validation f1 score for all classes\label{f1_val_classes}](./imgs/val_f1_classes.png)
+
+## Training time
+
+![Training times\label{training_time}](./imgs/training_time.png)
+
+## Competition performance
+
+Our chosen model for the competition was DeepLabV3 trained on all channels.
+It achieved an f1 score of **0.7367** on the validation data.
+On the public leaderboard it achieved a score of **0.5851**,
+and on the private leaderboard **0.5624**
+
 
 # Discussion
 
