@@ -35,33 +35,27 @@ header-includes: |
 ---
 
 # Abstract
-
+<!--This will be added later ignore-->
 Add abstract when all other sections are complete.
 
 # Introduction
 
-TODO:
-
-- [] Problem description
-- [] Related work
-- [] Objectives
-- [] Our Contributions
-
 In this paper we are working on the task of identifying deforestation drivers.
 This is part of a Solafune ML competition[^1] where the goal is to classify and 
-segment different causes of deforestation drivers in sattelite imagery.
+segment different causes of deforestation drivers in satellite imagery.
 
 Several architectures have been developed for image segmentation in different fields,
 such as UNet [@ronneberger2015unetconvolutionalnetworksbiomedical] and TransUNet [@chen2021transunet]
 for medical image segmentation, or the Segformer [@xie2021segformer] for general purpose 
 segmentation.
 
-We have several goals we want to achieve. First, achieve the best performance 
-as possible on the competition dataset. Second, compare the different implementations
-in terms of performance vs computational cost. Lastly, to produce similar results to 
-the papers in which architectures we have implemented.
+We have several goals we want to achieve. First, achieve the best possible performance
+on the competition dataset. 
+Second, compare the different implementations in terms of performance vs computational cost.
+Lastly, to reproduce results reported in the original architecture papers, which we 
+have implemented.
 
-Our contributions consists of applying different segmentation model architectures 
+Our contributions consist of applying different segmentation model architectures 
 on a deforestation segmentation task, and comparing their performance.
 
 [^1]: [Competition website](https://solafune.com/competitions/68ad4759-4686-4bb3-94b8-7063f755b43d?menu=about&tab=&modal=%22%22)
@@ -70,8 +64,8 @@ on a deforestation segmentation task, and comparing their performance.
 
 # Methods
 
+<!--Ignore TODO-->
 TODO:
-
 - Explain training pipeline
 - Pre-processing
 - Post-processing
@@ -105,17 +99,16 @@ ensuring consistent class mappings.
 
 [^2]: [Basline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
 
-## Model Architectures
+## Model architectures
 
-We have applied the following model architectures; UNet, DeepLabV3, VisionTransformer, 
+We have applied the following model architectures; UNet, DeepLabV3+, Vision Transformer (ViT), 
 Segformer, and TransUNet.
-
-UNet, DeepLabV3, and Segformer are applied using the pytorch segmentation Models
-library[@Iakubovskii:2019], while VisionTransformer and TransUNet are implemented following 
+We used the Pytorch Segmentation Models library [@Iakubovskii:2019] to implement UNet,
+DeepLabV3+, and Segformer, while ViT and TransUNet are implemented following 
 their respective papers and source code.
 
 
-### Vision Transformer
+### Vision Transformer (ViT)
 
 [@dosovitskiy2020vit]
 
@@ -128,7 +121,7 @@ For this project, I selected SegFormer as my individual contribution,
 with the aim of improving the model‚Äôs ability to identify deforestation
 drivers from satellite imagery in the Solafune competition. 
 
-#### Model Architecture
+#### Model architecture
 
 SegFormer is composed of two main components:
 
@@ -164,6 +157,7 @@ indicating strong generalization across segmentation tasks.
 
 ### TransUNet
 
+<!--Ignore TODO-->
 TODO:
 
 - Hybrid encoder
@@ -190,9 +184,9 @@ corresponding upsampling stage.
 In our implementation we use ResNet50-VisionTransformer for the hybrid encoder,
 using pre-trained weights loaded from the `timm` library.
 We implement the base version of TransUNet as they do in [@chen2021transunet].
-As we have are using more than three channels in the input, we had to 
-replace the first layer of the resnet encoder. Otherwise the 
-hybrid-encoder remains unmodified.
+Because our inputs have three or more channels, we replaced the ResNet encoder's 
+first convolutional layer; the rest of the hybrid encoder remained unchanged.
+
 
 #### Motivation
 
@@ -203,15 +197,17 @@ to see if we could get similar results for our task.
 
 ![TransUNet architecture [@chen2021transunet]\label{transunet_arch}](../trans_unet/img/transunet.png)
 
-## Ensemble Models
+## Ensemble models
 
 We create two ensemble models, one with all models called `ensemble1` and one without TransUNet called `ensemble2`.
 Ensemble models average the output logits of all its models. 
-The reasoning for this will become evident in the results section, but 
-in short TransUNet without any post-processing performed worse than all other 
-models.
+As shown in Results, TransUNet without post-processing performed 
+significantly worse than the other models.
 
-## Training and Evaluation
+## Training and evaluation
+
+<!--Ignore TODO-->
+TODO
 
 - Batch accumulation depending on batch size for model. 16 or 15 batches.
 - Cosine learning rate scheduler form `timm`
@@ -233,7 +229,8 @@ We use the pixel-based F1 score as the evaluation metric, in line with the compe
 
 To reduce the impact of spurious predictions, we apply a post-processing threshold that removes predicted segments with an area smaller than 10,000 pixels. This *min_area* constraint helps suppress noise and false positives, particularly in models that tend to produce fragmented or uncertain predictions. We found that applying this threshold significantly improved F1 scores—especially for models like TransUNet.
 
-### Batch Gradient Accumulation
+
+### Batch gradient accumulation
 
 As some of the model are quite large, and we have limited resources.
 We decided to use batch gradient accumulation.
@@ -257,13 +254,13 @@ We used pytorch lightning's built in batch gradient accumulation.
 Each model is trained for 200 epochs.
 During training we run the model on the validation set 
 every 5 epochs. The final version of the model we keep, 
-is the one that achieves the highest f1 score throuhout training.
+is the one that achieves the highest f1 score throughout training.
 
-### Model Selection
+### Model selection
 
 Once every model is finished training, we run them 
 through our post-processing step, and calculate their validation score.
-The model with the highest score is then choosen and used to generate 
+The model with the highest score is then chosen and used to generate 
 the final predictions for the test set, i.e. the competition submission.
 
 
@@ -278,9 +275,11 @@ TODO:
 
 ## Effect of adding minimum area
 
-Adding a minimum area for segmentation predictions seems to improve 
+Adding a minimum area for segmentation predictions seem to improve 
 model performance quite a lot, as seen in Table \ref{min_area_f1}.
-Suprisingly this more than doubled the performance of TransUNet.
+Remarkably, this more than doubled TransUNet's F1 score.
+
+<!--Maybe this should be a part of the methods section?-->
 The idea is that removing small segmentations, reduces the 
 number of false positive predictions.
 
@@ -288,7 +287,7 @@ number of false positive predictions.
     \centering
     \begin{tabular}{lll}
     \hline
-        Model & Without min area & With min area \\ \hline
+        Model & Minimum area = 0 pixels & Minimum area = 10k pixels \\ \hline
         unet\_rgb & 0.5961 & 0.6917 \\ 
         deeplab\_rgb & 0.6289 & 0.7159 \\ 
         segformer\_rgb & 0.6174 & 0.7029 \\ 
@@ -304,14 +303,14 @@ number of false positive predictions.
         ensemble1\_full & 0.6706 & 0.7335 \\ 
         ensemble2\_full & 0.6698 & 0.7327 \\ \hline
     \end{tabular}
-    \caption{Validation f1 scores with and without min area of 10k}
+    \caption{Validation f1 scores with and without Minimum Area of 10k(pixels)}
     \label{min_area_f1}
 \end{table}
 
 ## Effect of channels
 
 When comparing the models trained on only RGB channels and those trained on all channels,
-it seems that in general the performance improves, but only marginally.
+overall performance improves marginally.
 
 When looking at Figure \ref{full} and Figure \ref{rgb}, both seem to produce
 similar segmentations. However, the models trained on only the RGB channels seem to
@@ -327,7 +326,7 @@ predict more false positives as seen especially on the final row of predictions.
 
 Most of the models seem to converge around an F1-score of 0.8 during training
 and 0.6 on validation, as seen in Figure \ref{f1_train} and Figure \ref{f1_val}[^3].
-It is suprising to see that TransUNet performs so poorly compared to the other models,
+TransUNet's substantially lower performance is unexpected,
 only achieving an F1 score of around 0.2 in both datasets.
 
 ![Overall training f1 score\label{f1_train}](./imgs/train_f1.png)
@@ -350,8 +349,8 @@ and `mining`.
 The logging class consists of many small lines as seen in the last two images in Figure \ref{full}, 
 and the models either completely ignores those areas, or predicts logging on similar, but unrelated lines.
 For the grassland/shrubland class, the models tend to overpredict. Looking at the ground truth, 
-it is hard to actually see what the grassland/shrubland area is, as it more or less blends into 
-the rest of the forest or green areas of the image.
+it is hard to actually see what the grassland/shrubland area is, as it blends into surrounding vegetation,
+making it difficult to distinguish.
 
 
 ![Training f1 score for all classes\label{f1_train_classes}](./imgs/train_f1_classes.png)
@@ -360,7 +359,7 @@ the rest of the forest or green areas of the image.
 
 ## Training time
 
-All the models we tried had variying sizes, and took different amount of time to train.
+All the models we tried had varying sizes, and took different amount of time to train.
 Referring to Table \ref{param_size} and Figure \ref{training_time}, the smallest 
 model UNet only needed a third of the time training compared to the largest models 
 TransUNet and Vision Transformer. From Table \ref{min_area_f1} we see that there 
@@ -386,7 +385,7 @@ is only a marginal increase in performance.
 
 ## Competition performance
 
-Our chosen model for the competition was DeepLabV3 trained on all channels.
+Our chosen model for the competition was DeepLabV3+ trained on all channels.
 It achieved an f1 score of **0.7367** on the validation data.
 On the public leaderboard it achieved a score of **0.5851**,
 and on the private leaderboard **0.5624**
@@ -394,6 +393,7 @@ and on the private leaderboard **0.5624**
 
 # Discussion
 
+<!--Ignore TODO-->
 TODO:
 
 - How do we interpret our results?
