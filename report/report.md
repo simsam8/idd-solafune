@@ -64,12 +64,6 @@ on a deforestation segmentation task, and comparing their performance.
 
 # Methods
 
-<!--Ignore TODO-->
-TODO:
-- Explain training pipeline
-- Pre-processing
-- Post-processing
-
 We have used this github repo as a baseline for our pipeline.[^2]
 
 ## Pre-processing
@@ -157,14 +151,6 @@ indicating strong generalization across segmentation tasks.
 
 ### TransUNet
 
-<!--Ignore TODO-->
-TODO:
-
-- Hybrid encoder
-- CNN and Transformer
-- Skip connections
-- CUP (Cascaded Upsampler)
-
 #### Architecture 
 
 TransUNet is very similar to its predecessor UNet.
@@ -209,11 +195,9 @@ significantly worse than the other models.
 <!--Ignore TODO-->
 TODO
 
-- Batch accumulation depending on batch size for model. 16 or 15 batches.
 - Cosine learning rate scheduler form `timm`
 - Trained models on RGB and all channels
 - Frozen start on Transunet(15 epochs) and ViT(5 epochs)
-- evaluation on f1 score
 
 ### Hyperparameters
 
