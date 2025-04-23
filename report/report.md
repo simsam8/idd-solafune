@@ -176,7 +176,7 @@ TODO:
 TransUNet is very similar to its predecessor UNet.
 It consists of an encoder and decoder architecture,
 where the main difference is the introduction of a
-transformer in the encoder as seen in figure \ref{transunet_arch}. 
+transformer in the encoder as seen in Figure \ref{transunet_arch}. 
 The decoder block called CUP, short for Cascaded Upsampler,
 consists of multiple upsampling blocks,
 which is made up of a 2x bilinear upsampler followed by two 
@@ -267,30 +267,6 @@ The model with the highest score is then choosen and used to generate
 the final predictions for the test set, i.e. the competition submission.
 
 
-
-<!--| Model | RGB | Full |-->
-<!--| --------------- | --------------- | --------------- |-->
-<!--| UNet | 32.5 | 32.5 |-->
-<!--| DeepLabV3+ | 26.7 | 26.7 |-->
-<!--| Segformer | 82.0 | 82.0 |-->
-<!--| Vision Transformer | 88.8 | 90.6 |-->
-<!--| Transunet | 105 | 105 |-->
-
-\begin{table}[!ht]
-    \centering
-    \begin{tabular}{lll}
-    \hline
-        \textbf{Model} & \textbf{RGB} & \textbf{Full} \\ \hline
-        UNet & 32.5 & 32.5 \\ 
-        DeepLabV3+ & 26.7 & 26.7 \\ 
-        Segformer & 82.0 & 82.0 \\ 
-        Vision Transformer & 88.8 & 90.6 \\ 
-        Transunet & 105 & 105 \\ \hline
-    \end{tabular}
-    \caption{Number of parameters(millions) for models with RGB and all channels}
-    \label{param_size}
-\end{table}
-
 # Results
 
 TODO:
@@ -302,25 +278,8 @@ TODO:
 
 ## Effect of adding minimum area
 
-<!--| Model           | Without min area | With min area |-->
-<!--| --------------- | --------------- | --------------- |-->
-<!--| unet_rgb        | 0.5961 | 0.6917 |-->
-<!--| deeplab_rgb     | 0.6289 | 0.7159 |-->
-<!--| segformer_rgb   | 0.6174 | 0.7029 |-->
-<!--| vit_seg_rgb     | 0.6652 | 0.7200 |-->
-<!--| transunet_rgb   | 0.2089 | 0.6514 |-->
-<!--| ensemble1_rgb    | **0.6727** | 0.7182 |-->
-<!--| ensemble2_rgb    | 0.6725 | 0.7180 |-->
-<!--| unet_full       | 0.6303 | 0.6906 |-->
-<!--| deeplab_full    | 0.6520 | **0.7367** |-->
-<!--| segformer_full  | 0.6302 | 0.7048 |-->
-<!--| vit_seg_full    | 0.6098 | 0.7072 |-->
-<!--| transunet_full  | 0.2456 | 0.5915 |-->
-<!--| ensemble1_full   | 0.6706 | 0.7335 |-->
-<!--| ensemble2_full   | 0.6698 | 0.7327 |-->
-
 Adding a minimum area for segmentation predictions seems to improve 
-model performance quite a lot, as seen in table \ref{min_area_f1}.
+model performance quite a lot, as seen in Table \ref{min_area_f1}.
 Suprisingly this more than doubled the performance of TransUNet.
 The idea is that removing small segmentations, reduces the 
 number of false positive predictions.
@@ -354,7 +313,7 @@ number of false positive predictions.
 When comparing the models trained on only RGB channels and those trained on all channels,
 it seems that in general the performance improves, but only marginally.
 
-When looking at figure \ref{full} and figure \ref{rgb}, both seem to produce
+When looking at Figure \ref{full} and Figure \ref{rgb}, both seem to produce
 similar segmentations. However, the models trained on only the RGB channels seem to
 predict more false positives as seen especially on the final row of predictions.
 
@@ -364,19 +323,35 @@ predict more false positives as seen especially on the final row of predictions.
 
 ## Training and validation performance
 
+### Overall performance
+
 Most of the models seem to converge around an F1-score of 0.8 during training
-and 0.6 on validation, as seen in figure \ref{f1_train} and figure \ref{f1_val}[^3].
+and 0.6 on validation, as seen in Figure \ref{f1_train} and Figure \ref{f1_val}[^3].
 It is suprising to see that TransUNet performs so poorly compared to the other models,
 only achieving an F1 score of around 0.2 in both datasets.
-
-
-[^3]: The figures only show the results from models trained on all channels, but results 
-are similar for RGB as well.
 
 ![Overall training f1 score\label{f1_train}](./imgs/train_f1.png)
 
 ![Overall validation f1 score\label{f1_val}](./imgs/val_f1.png)
 
+
+[^3]: The figures only show the results from models trained on all channels, but results 
+are similar for RGB as well. No post-processing is applied here.
+
+
+### Class-wise performance
+
+Looking at the F1-score of each class in Figure \ref{f1_train_classes} and Figure \ref{f1_val_classes},
+we see that most models, except TransUNet, attain a similar performance in the different classes.
+They perform slightly better on the training data, which is to be expected. 
+All models seem to struggle with the classes `logging` and `grassland_shrubland`, more than `plantation`
+and `mining`.
+
+The logging class consists of many small lines as seen in the last two images in Figure \ref{full}, 
+and the models either completely ignores those areas, or predicts logging on similar, but unrelated lines.
+For the grassland/shrubland class, the models tend to overpredict. Looking at the ground truth, 
+it is hard to actually see what the grassland/shrubland area is, as it more or less blends into 
+the rest of the forest or green areas of the image.
 
 
 ![Training f1 score for all classes\label{f1_train_classes}](./imgs/train_f1_classes.png)
@@ -385,7 +360,29 @@ are similar for RGB as well.
 
 ## Training time
 
-![Training times\label{training_time}](./imgs/training_time.png)
+All the models we tried had variying sizes, and took different amount of time to train.
+Referring to Table \ref{param_size} and Figure \ref{training_time}, the smallest 
+model UNet only needed a third of the time training compared to the largest models 
+TransUNet and Vision Transformer. From Table \ref{min_area_f1} we see that there 
+is only a marginal increase in performance.
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{lll}
+    \hline
+        \textbf{Model} & \textbf{RGB} & \textbf{Full} \\ \hline
+        UNet & 32.5 & 32.5 \\ 
+        DeepLabV3+ & 26.7 & 26.7 \\ 
+        Segformer & 82.0 & 82.0 \\ 
+        Vision Transformer & 88.8 & 90.6 \\ 
+        Transunet & 105 & 105 \\ \hline
+    \end{tabular}
+    \caption{Number of parameters(millions) for models with RGB and all channels}
+    \label{param_size}
+\end{table}
+
+
+![Training time for each model on 200 epochs\label{training_time}](./imgs/training_time.png)
 
 ## Competition performance
 
@@ -401,5 +398,7 @@ TODO:
 
 - How do we interpret our results?
 - Did we achieve our objectives?
+- Why did the larger models perform worse then the smaller ones?
+- Hyperparameter tuning
 
 # References
