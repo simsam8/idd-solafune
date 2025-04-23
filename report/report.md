@@ -222,7 +222,17 @@ models.
 
 ### Hyperparameters
 
+Across all models, we use a learning rate of 1e-4 and a weight decay of 1e-2, which were found to balance convergence speed and regularization. Training is parallelized using 12 workers to optimize data loading efficiency.
+
+Batch sizes and accumulation steps are tuned based on the computational cost and memory footprint of each model. Lightweight models like UNet and DeepLabV3+ use batch sizes of 8 with accumulation of 2. For more computationally demanding models—such as Vision Transformer, TransUNet, and SegFormer—we reduce the batch size (1–3) and increase the accumulation (5–8) to maintain stable gradient estimates while fitting within GPU memory limits.
+
+Although SegFormer is more efficient than classical transformer-based models, it still requires careful memory handling due to its hierarchical structure. These hyperparameters were chosen to ensure training stability across architectures with very different complexity and resource requirements.
+
 ### Loss and Metric
+
+We use the pixel-based F1 score as the evaluation metric, in line with the competition rules. It balances precision and recall based on the overlap between predicted and ground truth masks, computed per class and averaged across the dataset.
+
+To reduce the impact of spurious predictions, we apply a post-processing threshold that removes predicted segments with an area smaller than 10,000 pixels. This *min_area* constraint helps suppress noise and false positives, particularly in models that tend to produce fragmented or uncertain predictions. We found that applying this threshold significantly improved F1 scores—especially for models like TransUNet.
 
 ### Batch Accumulation
 
