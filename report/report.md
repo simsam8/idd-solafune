@@ -219,7 +219,7 @@ We used pytorch lightning's built in batch gradient accumulation.
 
 ### Learning rate scheduler
 
-![Learning rate over time](./imgs/lr.png)
+![Learning rate over time](./imgs/lr.png){width=60%}
 
 ### Channel input
 
@@ -261,6 +261,7 @@ The idea is that removing small segmentations, reduces the
 number of false positive predictions.
 
 \begin{table}[!ht]
+\resizebox{6cm}{!}{
     \centering
     \begin{tabular}{lll}
     \hline
@@ -280,6 +281,7 @@ number of false positive predictions.
         ensemble1\_full & 0.6706 & 0.7335 \\ 
         ensemble2\_full & 0.6698 & 0.7327 \\ \hline
     \end{tabular}
+    }
     \caption{Validation f1 scores with and without Minimum Area of 10k(pixels)}
     \label{min_area_f1}
 \end{table}
@@ -293,9 +295,9 @@ When looking at Figure \ref{full} and Figure \ref{rgb}, both seem to produce
 similar segmentations. However, the models trained on only the RGB channels seem to
 predict more false positives as seen especially on the final row of predictions.
 
-![Segmentations using all channels\label{full}](./imgs/val_preds_full.png)
+![Segmentations using all channels\label{full}](./imgs/val_preds_full.png){width=90%}
 
-![Segmentations using rgb channels\label{rgb}](./imgs/val_preds_rgb.png)
+![Segmentations using rgb channels\label{rgb}](./imgs/val_preds_rgb.png){width=90%}
 
 ## Training and validation performance
 
@@ -306,9 +308,9 @@ and 0.6 on validation, as seen in Figure \ref{f1_train} and Figure \ref{f1_val}[
 TransUNet's substantially lower performance is unexpected,
 only achieving an F1 score of around 0.2 in both datasets.
 
-![Overall training f1 score\label{f1_train}](./imgs/train_f1.png)
+![Overall training f1 score\label{f1_train}](./imgs/train_f1.png){width=60%}
 
-![Overall validation f1 score\label{f1_val}](./imgs/val_f1.png)
+![Overall validation f1 score\label{f1_val}](./imgs/val_f1.png){width=60%}
 
 
 [^3]: The figures only show the results from models trained on all channels, but results 
@@ -330,9 +332,9 @@ it is hard to actually see what the grassland/shrubland area is, as it blends in
 making it difficult to distinguish.
 
 
-![Training f1 score for all classes\label{f1_train_classes}](./imgs/train_f1_classes.png)
+![Training f1 score for all classes\label{f1_train_classes}](./imgs/train_f1_classes.png){width=80%}
 
-![Validation f1 score for all classes\label{f1_val_classes}](./imgs/val_f1_classes.png)
+![Validation f1 score for all classes\label{f1_val_classes}](./imgs/val_f1_classes.png){width=80%}
 
 ## Training time
 
@@ -343,6 +345,7 @@ TransUNet and Vision Transformer. From Table \ref{min_area_f1} we see that there
 is only a marginal increase in performance.
 
 \begin{table}[!ht]
+\resizebox{6cm}{!}{
     \centering
     \begin{tabular}{lll}
     \hline
@@ -353,12 +356,13 @@ is only a marginal increase in performance.
         Vision Transformer & 88.8 & 90.6 \\ 
         Transunet & 105 & 105 \\ \hline
     \end{tabular}
+    }
     \caption{Number of parameters(millions) for models with RGB and all channels}
     \label{param_size}
 \end{table}
 
 
-![Training time for each model on 200 epochs\label{training_time}](./imgs/training_time.png)
+![Training time for each model on 200 epochs\label{training_time}](./imgs/training_time.png){width=80%}
 
 ## Competition performance
 
