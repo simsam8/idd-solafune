@@ -64,34 +64,27 @@ on a deforestation segmentation task, and comparing their performance.
 
 # Methods
 
-We have used this github repo as a baseline for our pipeline.[^2]
+Our entire pipeline is based upon a GitHub repository made by motokimura.[^2]
+We have made a couple of modifications to the training and evaluation pipeline,
+but the pre- and post-processing steps remains mainly unchanged.
+
+[^2]: [Baseline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
 
 ## Pre-processing
 
-The following pre-processing steps were applied consistently across all models:
-
-- Label Generation: Ground-truth masks were generated from the Solafune competition data,
-ensuring consistent class mappings.
-- Image Augmentation: We applied several augmentation techniques to improve model robustness, including:
-  - Random horizontal and vertical flips
-  - Random brightness and contrast adjustments
-  - Random rotations and shifts
-- Random Cropping:
-  - For most models, we performed random cropping to half the original image size
-  to increase data variability and focus on finer details.
-  - For the Vision Transformer (ViT) model, we retained full image size
-  due to the model's architectural sensitivity to input size.
-- Normalization:
-  - Images were normalized using mean and standard deviation values calculated from the training dataset.
-  - Normalization values depend on the number of input channels (e.g., RGB only or RGB + NIR).
+The competition data comes in the form of annotated polygons in a json file.
+We convert those into tensors of 4 channels.
+We apply standard image augmentations such as flipping, scaling and rotation.
+Additionally we apply random cropping reducing the input image by half.
+The cropping is not applied for the Vision Transformer (ViT) model.
+Images are also normalized using mean and standard deviation calculated from
+training images. Normalization values depends on the number of input channels, i.e. 
+using only RGB or all channels.
 
 ## Post-processing
 
-- scoring threshold of 0.5. 
-- A minimum area 10000 to count valid masks (this is not applied during training).
-
-
-[^2]: [Basline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
+We applied a score threshold of 0.5 to binarize the predicted masks.
+Additionally, we discarded predicted masks smaller than 10 000 pixels (applied at inference only).
 
 ## Model architectures
 
