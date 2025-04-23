@@ -287,7 +287,7 @@ number of false positive predictions.
     \centering
     \begin{tabular}{lll}
     \hline
-        Model & Minimum area = 0 pixels & Minimum area = 10k pixels \\ \hline
+        Model & Min area = 0 & Min area = 10k \\ \hline
         unet\_rgb & 0.5961 & 0.6917 \\ 
         deeplab\_rgb & 0.6289 & 0.7159 \\ 
         segformer\_rgb & 0.6174 & 0.7029 \\ 
