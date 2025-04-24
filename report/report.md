@@ -382,6 +382,22 @@ and on the private leaderboard **0.5624**
 
 # Discussion
 
+## How do we interpret our results?
+
+SegFormer (full) showed solid and consistent performance, particularly on the plantation and mining classes. While it didn't outperform DeepLabV3+, it remained competitive and stable across all classes. Its weaker results on logging and grassland_shrubland mirror trends seen in other models, likely due to the subtle patterns in those categories.
+
+## Did we achieve our objectives?
+
+Despite its relatively lightweight architecture and removal of explicit positional encodings, SegFormer delivers competitive results while maintaining significantly lower training time than models like ViT and TransUNet as seen in Figure 9. This efficiency is largely due to its simplified decoder and hierarchical encoder design. Given its faster training and strong performance across classes, SegFormer offers an excellent trade-off between complexity and accuracy—outperforming several more resource-intensive models in practical terms.
+
+## Why did the larger models perform worse then the smaller ones?
+
+Larger models like TransUNet and ViT underperformed compared to simpler architectures such as DeepLabV3+ and SegFormer. A key reason is underfitting—especially for TransUNet—which likely stems from limited data provided and insufficient training time to optimize such a complex architecture. TransUNet's low and unstable class-wise F1 scores indicate that it struggled to learn meaningful patterns from the dataset.
+
+These larger models also depend heavily on precise hyperparameter tuning and benefit from large-scale datasets, which we did not have. Additionally, transformer-heavy models lack built-in spatial priors, making them less suited for tasks like satellite image segmentation unless paired with extensive pretraining.
+Meanwhile, models like SegFormer and DeepLabV3+ balance capacity and efficiency well. They leverage inductive biases and hierarchical structures that are better aligned with the spatial nature of our task, allowing them to generalize more effectively with fewer resources.
+
+
 <!--Ignore TODO-->
 TODO:
 
