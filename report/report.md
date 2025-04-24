@@ -206,6 +206,9 @@ to maintain stable gradient estimates while fitting within GPU memory limits.
 
 ### Loss and Metric
 
+<!--Maybe add the formulas as well?-->
+The loss function is the sum of Dice loss and Soft Binary Cross entropy with a smoothing factor of 0.
+
 We use the pixel-based F1 score as the evaluation metric, in line with the competition rules. It balances precision and recall based on the overlap between predicted and ground truth masks, computed per class and averaged across the dataset.
 
 
