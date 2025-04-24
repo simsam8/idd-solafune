@@ -98,19 +98,36 @@ their respective papers and source code.
 
 ### Vision Transformer (ViT)
 
-The Vision Transformer (ViT) model treats an image as a sequence of fixed-sized patches and processes them with a standard Transformer encoder, rather than convolutional inductive biases to learn long-range dependencies in the data it relies on self-attention. 
+The Vision Transformer (ViT) model treats an image as a sequence of
+fixed-sized patches and processes them with a standard Transformer encoder,
+rather than convolutional inductive biases to learn long-range
+dependencies in the data it relies on self-attention. 
 
 #### Model Architecture
 
-The Vision Transformer breaks an image into fixed size patches, linearly embeds each patch (plus a learnable class token and positional embeddings) into vectors. The result of this is then feed as sequence through standard Transformer encoder layers that contains multi-head self-attention followed by feed-forward networks, using the final class token as representation for prediction.
+The Vision Transformer breaks an image into fixed size patches,
+linearly embeds each patch (plus a learnable class token and positional embeddings) into vectors.
+The result of this is then feed as sequence through standard Transformer
+encoder layers that contains multi-head self-attention followed by
+feed-forward networks, using the final class token as representation for prediction.
 
 #### Implementation 
 
-In our ViT implementation we started from the torchvision ViT-B/16 model pretrained on ImageNet [@dosovitskiy2020vit] swapped its first layer to accept all 12 Sentinel-2 bands, resized its built-in positional embeddings to our 1024×1024 image grid, and replaced the classification head with a lightweight segmentation head for four land-use classes. The transformer backbone remained frozen, and only the new segmentation head was trained on our data.
+In our ViT implementation we started from the torchvision ViT-B/16
+model pretrained on ImageNet [@dosovitskiy2020vit] swapped its first layer
+to accept all 12 Sentinel-2 bands, resized its built-in positional embeddings
+to our 1024×1024 image grid, and replaced the classification head with
+a lightweight segmentation head for four land-use classes.
+The transformer backbone remained frozen,
+and only the new segmentation head was trained on our data.
 
 #### Why Vision Transformer
 
-Based on [@dosovitskiy2020vit] the ViT applies a pure Transformer to image patches and, with large-scale pre-training, matches or exceeds CNNs on vision benchmarks. Since our task requires capturing long-range, multispectral context in high-resolution satellite imagery, we wanted to see if ViT could similarly improve segmentation performance.
+Based on [@dosovitskiy2020vit] the ViT applies a pure Transformer to image patches and,
+with large-scale pre-training, matches or exceeds CNNs on vision benchmarks.
+Since our task requires capturing long-range,
+multispectral context in high-resolution satellite imagery,
+we wanted to see if ViT could similarly improve segmentation performance.
 
 
 ### Segformer
@@ -197,13 +214,6 @@ significantly worse than the other models.
 
 ## Training and evaluation
 
-<!--Ignore TODO-->
-TODO
-
-- Cosine learning rate scheduler form `timm`
-- Trained models on RGB and all channels
-- Frozen start on Transunet(15 epochs) and ViT(5 epochs)
-
 ### Hyperparameters
 
 Across all models, we use a learning rate of 1e-4 and a weight decay of 1e-2,
@@ -222,7 +232,10 @@ to maintain stable gradient estimates while fitting within GPU memory limits.
 <!--Maybe add the formulas as well?-->
 The loss function is the sum of Dice loss and Soft Binary Cross entropy with a smoothing factor of 0.
 
-We use the pixel-based F1 score as the evaluation metric, in line with the competition rules. It balances precision and recall based on the overlap between predicted and ground truth masks, computed per class and averaged across the dataset.
+We use the pixel-based F1 score as the evaluation metric,
+in line with the competition rules. It balances precision
+and recall based on the overlap between predicted and ground truth masks,
+computed per class and averaged across the dataset.
 
 
 ### Batch gradient accumulation
@@ -237,18 +250,23 @@ We used pytorch lightning's built in batch gradient accumulation.
 
 ### Learning rate scheduler
 
-We use an AdamW optimizer with a cosine‐decay schedule, the learning rate starts at our base value and smoothly decays to zero over the full training run, with no explicit warmup period.
-The cosine curve ensures that the LR decreases gently at first and then more rapidly toward the end of training.
-
-![Learning rate over time](./imgs/lr.png){width=60%}
+We use an AdamW optimizer with a cosine‐decay schedule,
+the learning rate starts at our base value and smoothly decays
+to zero over the full training run, with no explicit warmup period.
+The cosine curve ensures that the LR decreases gently
+at first and then more rapidly toward the end of training.
 
 ### Channel input
 
-Each model is trained in two variants, one ingesting all 12 Sentinel-2 spectral bands and one using only the standard RGB channels, so we can measure the benefit of the extra multispectral information. 
+Each model is trained in two variants, one ingesting all 12
+Sentinel-2 spectral bands and one using only the standard RGB channels,
+so we can measure the benefit of the extra multispectral information. 
 
 ### Frozen start
 
-We freeze the Transformer encoder for the first five epochs, while TransUnet uses 15 epochs updating only the new segmentation head before unfreezing the backbone for joint fine-tuning.
+We freeze the Transformer encoder for the first five epochs,
+while TransUnet uses 15 epochs updating only the new segmentation
+head before unfreezing the backbone for joint fine-tuning.
 
 ### Training process
 
