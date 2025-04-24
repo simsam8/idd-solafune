@@ -200,8 +200,8 @@ Training is parallelized using 12 workers to optimize data loading efficiency.
 Batch sizes and accumulation steps are tuned based on the computational cost
 and memory footprint of each model.
 Lightweight models like UNet and DeepLabV3+ use batch sizes of 8 with accumulation of 2.
-For more computationally demanding models—such as Vision Transformer, TransUNet,
-and SegFormer—we reduce the batch size (1–3) and increase the accumulation (5–8)
+For more computationally demanding models such as ViT, TransUNet,
+and SegFormer, we reduce the batch size (1–3) and increase the accumulation (5–8)
 to maintain stable gradient estimates while fitting within GPU memory limits.
 
 ### Loss and Metric
@@ -211,8 +211,8 @@ We use the pixel-based F1 score as the evaluation metric, in line with the compe
 
 ### Batch gradient accumulation
 
-As some of the model are quite large, and we have limited resources.
-We decided to use batch gradient accumulation.
+As some of the model are quite large, and we have limited resources,
+we decided to use batch gradient accumulation.
 Instead of using larger batches, we use smaller `k` batches 
 and accumulate the gradients of `N` batches before the backward pass. 
 The effective batch size then becomes `kxN`. All models are trained 
