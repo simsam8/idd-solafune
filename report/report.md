@@ -42,7 +42,7 @@ Add abstract when all other sections are complete.
 
 In this paper we are working on the task of identifying deforestation drivers.
 This is part of a Solafune ML competition[^1] where the goal is to classify and 
-segment different causes of deforestation drivers in satellite imagery.
+segment drivers of deforestation in satellite imagery.
 
 Several architectures have been developed for image segmentation in different fields,
 such as UNet [@ronneberger2015unetconvolutionalnetworksbiomedical] and TransUNet [@chen2021transunet]
@@ -66,7 +66,7 @@ on a deforestation segmentation task, and comparing their performance.
 
 Our entire pipeline is based upon a GitHub repository made by motokimura.[^2]
 We have made a couple of modifications to the training and evaluation pipeline,
-but the pre- and post-processing steps remains mainly unchanged.
+but the pre- and post-processing steps remain mainly unchanged.
 
 [^2]: [Baseline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
 
@@ -78,14 +78,15 @@ We apply standard image augmentations such as flipping, scaling and rotation.
 Additionally we apply random cropping reducing the input image by half.
 The cropping is not applied for the Vision Transformer (ViT) model.
 Images are also normalized using mean and standard deviation calculated from
-training images. Normalization values depends on the number of input channels, i.e. 
+training images. Normalization values depend on the number of input channels, i.e. 
 using only RGB or all channels.
 
 ## Post-processing
 
 We applied a score threshold of 0.5 to binarize the predicted masks.
-Additionally, we discarded predicted masks smaller than 10 000 pixels (applied at inference only).
-This is to reduce possible false positive predictions.
+Additionally, we discard masks smaller than 10 000 pixels during inference.
+The idea is that removing small segmentations reduces the 
+number of false positive predictions.
 
 ## Model architectures
 
@@ -107,7 +108,7 @@ dependencies in the data it relies on self-attention.
 
 The Vision Transformer breaks an image into fixed size patches,
 linearly embeds each patch (plus a learnable class token and positional embeddings) into vectors.
-The result of this is then feed as sequence through standard Transformer
+The result of this is then fed as sequence through standard Transformer
 encoder layers that contains multi-head self-attention followed by
 feed-forward networks, using the final class token as representation for prediction.
 
@@ -181,7 +182,7 @@ where the main difference is the introduction of a
 transformer in the encoder as seen in Figure \ref{transunet_arch}. 
 The decoder block called CUP, short for Cascaded Upsampler,
 consists of multiple upsampling blocks,
-which is made up of a 2x bilinear upsampler followed by two 
+which are made up of a 2x bilinear upsampler followed by two 
 convolutional blocks.
 The decoder also uses skip connections from the CNN encoder,
 and passes them into the first convolutional block in the 
@@ -270,8 +271,7 @@ head before unfreezing the backbone for joint fine-tuning.
 
 ### Training process
 
-Each model is trained for 200 epochs.
-During training we run the model on the validation set 
+We train each model for 200 epochs, evaluating on the validation set 
 every 5 epochs. The final version of the model we keep, 
 is the one that achieves the highest f1 score throughout training.
 
@@ -285,22 +285,11 @@ the final predictions for the test set, i.e. the competition submission.
 
 # Results
 
-TODO:
-
-- What we found
-- Which model performs the best
-- Follow structure of methods section
-
-
 ## Effect of adding minimum area
 
 Adding a minimum area for segmentation predictions seem to improve 
 model performance quite a lot, as seen in Table \ref{min_area_f1}.
 Remarkably, this more than doubled TransUNet's F1 score.
-
-<!--Maybe this should be a part of the methods section?-->
-The idea is that removing small segmentations, reduces the 
-number of false positive predictions.
 
 \begin{table}[!ht]
 \resizebox{6cm}{!}{
@@ -382,8 +371,8 @@ making it difficult to distinguish.
 
 All the models we tried had varying sizes, and took different amount of time to train.
 Referring to Table \ref{param_size} and Figure \ref{training_time}, the smallest 
-model UNet only needed a third of the time training compared to the largest models 
-TransUNet and Vision Transformer. From Table \ref{min_area_f1} we see that there 
+models only needed around a third of the time training compared to the largest models 
+TransUNet and ViT. From Table \ref{min_area_f1} we see that there 
 is only a marginal increase in performance.
 
 \begin{table}[!ht]
