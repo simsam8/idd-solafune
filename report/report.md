@@ -111,20 +111,20 @@ drivers from satellite imagery in the Solafune competition.
 
 #### Model architecture
 
-SegFormer is composed of two main components:
+SegFormer is composed of two main components, the Mix Transformer (MiT) Encoder
+and an All-MLP Decoder.
 
-1. Mix Transformer (MiT) Encoder:
-    - The encoder is built on a Transformer-based backbone specifically
-    designed for efficient visual representation learning.
-    - Unlike classical Vision Transformers, SegFormer avoids explicit positional encodings,
-    making it more robust to varying image resolutions.
-    - It uses overlapping patch embeddings and a hierarchical structure to
-    effectively capture both local and global contexts in the image.
-2. All-MLP Decoder:
-    - The decoder consists solely of lightweight Multi-Layer Perceptrons (MLPs),
-    which fuse multi-scale features extracted by the encoder.
-    - This results in a simple yet highly performant decoding module with low computational overhead,
-    making the model suitable even for resourc constrained environments.
+The encoder is built on a Transformer-based backbone specifically
+designed for efficient visual representation learning.
+Unlike classical Vision Transformers, SegFormer avoids explicit positional encodings,
+making it more robust to varying image resolutions.
+It uses overlapping patch embeddings and a hierarchical structure to
+effectively capture both local and global contexts in the image.
+
+The decoder consists solely of lightweight Multi-Layer Perceptrons (MLPs),
+which fuse multi-scale features extracted by the encoder.
+This results in a simple yet highly performant decoding module with low computational overhead,
+making the model suitable even for resource constrained environments.
 
 #### Implementation
 
@@ -135,12 +135,10 @@ enabling easy training and experimentation.
 
 #### Why SegFormer?
 
-SegFormer was chosen for several reasons:
-
-- It strikes an excellent balance between accuracy and efficiency,
+It strikes an excellent balance between accuracy and efficiency,
 making it suitable for satellite image segmentation where high resolution and scale variation are common.
-- The model is available in multiple sizes (B0-B5), allowing flexibility depending on hardware constraints.
-- It has achieved strong results on benchmarks such as Cityscapes and ADE20K,
+The model is available in multiple sizes (B0-B5), allowing flexibility depending on hardware constraints.
+It has achieved strong results on benchmarks such as Cityscapes and ADE20K,
 indicating strong generalization across segmentation tasks.
 
 ### TransUNet
