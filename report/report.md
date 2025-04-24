@@ -35,7 +35,6 @@ header-includes: |
 ---
 
 # Abstract
-<!--This will be added later ignore-->
 Add abstract when all other sections are complete.
 
 # Introduction
@@ -84,7 +83,7 @@ using only RGB or all channels.
 ## Post-processing
 
 We applied a score threshold of 0.5 to binarize the predicted masks.
-Additionally, we discard masks smaller than 10 000 pixels during inference.
+Additionally, we discard masks smaller than 10,000 pixels during inference.
 The idea is that removing small segmentations reduces the 
 number of false positive predictions.
 
@@ -100,9 +99,9 @@ their respective papers and source code.
 ### Vision Transformer (ViT)
 
 The Vision Transformer (ViT) model treats an image as a sequence of
-fixed-sized patches and processes them with a standard Transformer encoder,
-rather than convolutional inductive biases to learn long-range
-dependencies in the data it relies on self-attention. 
+fixed-sized patches and processes them with a standard Transformer encoder.
+It relies on self-attention instead of convolutional inductive biases
+to learn long-range dependencies.
 
 #### Model Architecture
 
@@ -147,7 +146,7 @@ improving robustness to varying input resolutions.
 
 The decoder is composed entirely of Multi-Layer Perceptrons (MLPs),
 which aggregate multi-scale features from the encoder.
-This design keeps the decoder computationally lightweight while maintaining strong segmentation performance.
+This design keeps the decoder lightweight while maintaining strong segmentation performance.
 
 #### Implementation
 
@@ -176,8 +175,7 @@ consists of multiple upsampling blocks,
 which are made up of a 2x bilinear upsampler followed by two 
 convolutional blocks.
 The decoder also uses skip connections from the CNN encoder,
-and passes them into the first convolutional block in the 
-corresponding upsampling stage.
+passing them into the first convolutional block at each upsampling stage.
 
 #### Implementation
 
@@ -201,7 +199,7 @@ to see if we could get similar results for our task.
 
 We create two ensemble models, one with all models called `ensemble1` and one without TransUNet called `ensemble2`.
 Ensemble models average the output logits of all its models. 
-As shown in Results, TransUNet without post-processing performed 
+As shown in Results, TransUNet without post-processing performs 
 significantly worse than the other models.
 
 ## Training and evaluation
@@ -209,41 +207,38 @@ significantly worse than the other models.
 ### Hyperparameters
 
 Across all models, we use a learning rate of 1e-4 and a weight decay of 1e-2,
-which were found to balance convergence speed and regularization.
+which we found to balance convergence speed and regularization.
 Training is parallelized using 12 workers to optimize data loading efficiency.
 
-Batch sizes and accumulation steps are tuned based on the computational cost
-and memory footprint of each model.
-Lightweight models like UNet and DeepLabV3+ use batch sizes of 8 with accumulation of 2.
-For more computationally demanding models such as ViT, TransUNet,
-and SegFormer, we reduce the batch size (1–3) and increase the accumulation (5–8)
-to maintain stable gradient estimates while fitting within GPU memory limits.
 
 ### Loss and Metric
 
 <!--Maybe add the formulas as well?-->
-The loss function is the sum of Dice loss and Soft Binary Cross entropy with a smoothing factor of 0.
+The loss function is the sum of Dice loss and Soft Binary Cross-Entropy with a smoothing factor of 0.
 
 We use the pixel-based F1 score as the evaluation metric,
 in line with the competition rules. It balances precision
 and recall based on the overlap between predicted and ground truth masks,
-computed per class and averaged across the dataset.
+computed per class and averaged across classes.
 
 
-### Batch gradient accumulation
+### Batch size and gradient accumulation
 
-As some of the model are quite large, and we have limited resources,
+As some of the models are quite large, and we have limited resources,
 we decided to use batch gradient accumulation.
-Instead of using larger batches, we use smaller `k` batches 
-and accumulate the gradients of `N` batches before the backward pass. 
-The effective batch size then becomes `kxN`. All models are trained 
+Instead of using larger batches, we use smaller $k$ batches 
+and accumulate the gradients of $N$ total batches before the backward pass. 
+The effective batch size then becomes $k*N$. All models are trained 
 on an effective batch size of either 15 or 16.
 We used pytorch lightning's built in batch gradient accumulation.
+Batch sizes and accumulation steps are tuned based on each model's computational cost
+and memory footprint.
+
 
 ### Learning rate scheduler
 
-We use an AdamW optimizer with a cosine‐decay schedule,
-the learning rate starts at our base value and smoothly decays
+We use an AdamW optimizer with a cosine‐decay schedule.
+The learning rate starts at our base value and smoothly decays
 to zero over the full training run, with no explicit warmup period.
 The cosine curve ensures that the LR decreases gently
 at first and then more rapidly toward the end of training.
@@ -263,7 +258,7 @@ head before unfreezing the backbone for joint fine-tuning.
 ### Training process
 
 We train each model for 200 epochs, evaluating on the validation set 
-every 5 epochs. The final version of the model we keep, 
+every five epochs. The final version of the model we keep, 
 is the one that achieves the highest f1 score throughout training.
 
 ### Model selection
@@ -278,9 +273,9 @@ the final predictions for the test set, i.e. the competition submission.
 
 ## Effect of adding minimum area
 
-Adding a minimum area for segmentation predictions seem to improve 
-model performance quite a lot, as seen in Table \ref{min_area_f1}.
-Remarkably, this more than doubled TransUNet's F1 score.
+Adding a minimum-area filter on the predicted masks,
+substantially improves model performance, as seen in Table \ref{min_area_f1}.
+Notably, this more than doubled TransUNet's F1 score.
 
 \begin{table}[!ht]
 \resizebox{6cm}{!}{
@@ -310,12 +305,10 @@ Remarkably, this more than doubled TransUNet's F1 score.
 
 ## Effect of channels
 
-When comparing the models trained on only RGB channels and those trained on all channels,
-overall performance improves marginally.
-
-When looking at Figure \ref{full} and Figure \ref{rgb}, both seem to produce
-similar segmentations. However, the models trained on only the RGB channels seem to
-predict more false positives as seen especially on the final row of predictions.
+Models trained on all channels perform marginally better than their RGB-only counterparts.
+When looking at Figure \ref{full} and Figure \ref{rgb}, both produce
+similar segmentations, but the RGB-only models generate noticeably more false positives
+(especially in the final row).
 
 ![Segmentations using all channels\label{full}](./imgs/val_preds_full.png){width=90%}
 
@@ -325,10 +318,10 @@ predict more false positives as seen especially on the final row of predictions.
 
 ### Overall performance
 
-Most of the models seem to converge around an F1-score of 0.8 during training
+Most models converge to an F1-score of roughly 0.8 on training
 and 0.6 on validation, as seen in Figure \ref{f1_train} and Figure \ref{f1_val}[^3].
-TransUNet's substantially lower performance is unexpected,
-only achieving an F1 score of around 0.2 in both datasets.
+TransUNet's much lower performance is unexpected;
+it achieves only about 0.2 F1 on both sets.
 
 ![Overall training f1 score\label{f1_train}](./imgs/train_f1.png){width=60%}
 
@@ -342,13 +335,13 @@ are similar for RGB as well. No post-processing is applied here.
 ### Class-wise performance
 
 Looking at the F1-score of each class in Figure \ref{f1_train_classes} and Figure \ref{f1_val_classes},
-we see that most models, except TransUNet, attain a similar performance in the different classes.
+we see that most models, except TransUNet, attain similar performance across classes.
 They perform slightly better on the training data, which is to be expected. 
 All models seem to struggle with the classes `logging` and `grassland_shrubland`, more than `plantation`
 and `mining`.
 
-The logging class consists of many small lines as seen in the last two images in Figure \ref{full}, 
-and the models either completely ignores those areas, or predicts logging on similar, but unrelated lines.
+The logging class consists of many thin lines (see the last two images in Figure \ref{full}), 
+and models either ignore them entirely, or predict logging on similar, but unrelated features.
 For the grassland/shrubland class, the models tend to overpredict. Looking at the ground truth, 
 it is hard to actually see what the grassland/shrubland area is, as it blends into surrounding vegetation,
 making it difficult to distinguish.
@@ -361,10 +354,9 @@ making it difficult to distinguish.
 ## Training time
 
 All the models we tried had varying sizes, and took different amount of time to train.
-Referring to Table \ref{param_size} and Figure \ref{training_time}, the smallest 
-models only needed around a third of the time training compared to the largest models 
-TransUNet and ViT. From Table \ref{min_area_f1} we see that there 
-is only a marginal increase in performance.
+As shown in Table \ref{param_size} and Figure \ref{training_time}, the smallest 
+models require only about one-third of the time training of the largest models 
+TransUNet and ViT. Table \ref{min_area_f1} shows only a marginal increase in performance.
 
 \begin{table}[!ht]
 \resizebox{6cm}{!}{
@@ -394,60 +386,31 @@ On the public leaderboard it achieved a score of **0.5851**,
 and on the private leaderboard **0.5624**
 
 
-# Discussion
+# Conclusion
 
-## How do we interpret our results?
+DeepLabV3+ (full) achieved the best F1-score (**0.7367**), outperforming all other 
+models, including the ensembles. The smaller models performed as well or better than 
+the larger models, while using a lot less training time, making them more viable 
+for further experimentation.
 
-SegFormer (full) showed solid and consistent performance, particularly on the plantation and mining classes.
-While it didn't outperform DeepLabV3+, it remained competitive and stable across all classes.
-Its weaker results on logging and grassland_shrubland mirror trends seen in other models,
-likely due to the subtle patterns in those categories.
+All models show weaker performance on logging and grassland_shrubland,
+suggesting possible class imbalance, or subtle patterns that are hard to detect.
+Because we did not check for class imbalance, we cannot definitively pinpoint the cause.
+
 UNet and DeepLabV3+ served as reliable baselines, ViT proved the strongest pure‐transformer segmenter.
-TransUNet, despite its huge capacity struggled on raw outputs but recovered much of its performance after minimum‐area filtering.
-Finally, our ensemble variants combined these strengths to deliver the highest overall F1.
-
-## Did we achieve our objectives?
-
-Despite its relatively lightweight architecture and removal of explicit positional encodings,
-SegFormer delivers competitive results while maintaining significantly lower training time than models like ViT and TransUNet as seen in Figure 9.
-This efficiency is largely due to its simplified decoder and hierarchical encoder design.
-Given its faster training and strong performance across classes,
-SegFormer offers an excellent trade-off between complexity and accuracy—outperforming several more resource-intensive models in practical terms.
-
-## Why did the larger models perform worse then the smaller ones?
-
-Larger models like TransUNet and ViT underperformed compared to simpler architectures such as DeepLabV3+ and SegFormer.
-A key reason is underfitting—especially for TransUNet—which likely stems from limited data provided and insufficient training
-time to optimize such a complex architecture.
-TransUNet's low and unstable class-wise F1 scores indicate that it struggled to learn meaningful patterns from the dataset.
-
-These larger models also depend heavily on precise hyperparameter tuning and benefit from large-scale datasets,
-which we did not have. Additionally, transformer-heavy models lack built-in spatial priors,
-making them less suited for tasks like satellite image segmentation unless paired with extensive pretraining.
-Meanwhile, models like SegFormer and DeepLabV3+ balance capacity and efficiency well.
-They leverage inductive biases and hierarchical structures that are better aligned with the spatial nature of our task,
-allowing them to generalize more effectively with fewer resources.
+TransUNet, despite its huge capacity struggled on raw outputs but recovered much of its performance after minimum-area filtering.
 
 Surprisingly our largest mode, TransUNet, underperformed the most in comparison to the other models.
 Huge models often “overfit” on limited data, since TransUNet need substantially more data to avoid overfitting,
 subsequently big networks are extremely sensitive to choices like learning-rate schedules and weight decay.
-Our relatively small, task-specific dataset simply wasn’t enough to fully train such a heavyweight model.
+Our relatively small, task-specific dataset insufficient to fully train such a heavyweight model.
 As a result, TransUNet “memorized” noise instead of learning generalizable patterns, leading to its very low raw F1.
+
 TransUNet’s poor result, despite its ImageNet-21K pretraining, can be caused by a few missteps.
 The encoder was frozen for 15 epochs (versus just 5 for ViT),
 so its rich pretrained features potentially never properly adapted before the decoder learned to segment. 
 In hindsight, a more light unfreezing schedule, gentler learning-rate warmup, adjusted weight decay,
 larger effective batches, or extra regularization could help large models like TransUNet utilize their pretrained strengths.
-Unfortunately, time and compute limits kept us from fully exploring those avenues. 
-
-
-
-<!--Ignore TODO-->
-TODO:
-
-- How do we interpret our results?
-- Did we achieve our objectives?
-- Why did the larger models perform worse then the smaller ones?
-- Hyperparameter tuning
+Unfortunately, time and computational constraints prevented us from exploring those avenues further. 
 
 # References
