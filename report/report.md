@@ -98,8 +98,6 @@ their respective papers and source code.
 
 ### Vision Transformer (ViT)
 
-#### Vision Transformer
-
 The Vision Transformer (ViT) model treats an image as a sequence of fixed-sized patches and processes them with a standard Transformer encoder, rather than convolutional inductive biases to learn long-range dependencies in the data it relies on self-attention. 
 
 #### Model Architecture
