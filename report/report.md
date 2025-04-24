@@ -133,21 +133,35 @@ we wanted to see if ViT could similarly improve segmentation performance.
 
 ### Segformer
 
-SegFormer [@xie2021segformer] is a transformer-based architecture designed for efficient semantic segmentation. It combines the strengths of hierarchical representations from convolutional networks with the global context modeling of transformers. In our project, we included SegFormer as one of the core models to evaluate its ability to identify deforestation drivers in satellite imagery.
+SegFormer [@xie2021segformer] is a transformer-based architecture designed for efficient semantic segmentation.
+It combines the strengths of hierarchical representations from convolutional networks with the global context modeling of transformers.
+In our project, we included SegFormer as one of the core models to evaluate its ability to identify deforestation drivers in satellite imagery.
 
 #### Model architecture
 
-SegFormer consists of two main components: the Mix Transformer (MiT) encoder and a lightweight MLP-based decoder. The encoder is optimized for visual tasks, using overlapping patch embeddings and a hierarchical structure to effectively capture both local and global image features. Unlike traditional Vision Transformers, SegFormer replaces explicit positional encodings with Mix-FFN modules, improving robustness to varying input resolutions.
+SegFormer consists of two main components: the Mix Transformer (MiT) encoder and a lightweight MLP-based decoder.
+The encoder is optimized for visual tasks
+using overlapping patch embeddings and a hierarchical structure to effectively capture both local and global image features.
+Unlike traditional Vision Transformers, SegFormer replaces explicit positional encodings with Mix-FFN modules,
+improving robustness to varying input resolutions.
 
-The decoder is composed entirely of Multi-Layer Perceptrons (MLPs), which aggregate multi-scale features from the encoder. This design keeps the decoder computationally lightweight while maintaining strong segmentation performance.
+The decoder is composed entirely of Multi-Layer Perceptrons (MLPs),
+which aggregate multi-scale features from the encoder.
+This design keeps the decoder computationally lightweight while maintaining strong segmentation performance.
 
 #### Implementation
 
-We used the implementation of SegFormer provided by the *segmentation_models* library [@Iakubovskii:2019], which integrates smoothly with PyTorch and supports modular experimentation. This allowed us to quickly prototype and evaluate different model variants under our unified training and evaluation pipeline.
+We used the implementation of SegFormer provided by the *segmentation_models* library [@Iakubovskii:2019],
+which integrates smoothly with PyTorch and supports modular experimentation.
+This allowed us to quickly prototype and evaluate different model variants under our unified training and evaluation pipeline.
 
 #### Why SegFormer?
 
-We selected the SegFormer-B5 variant, which is the most powerful configuration of the architecture. Its deep encoder is particularly effective at capturing both fine-grained and large-scale features, making it well suited for complex segmentation tasks like deforestation mapping. In addition, SegFormer has demonstrated strong benchmark results on datasets such as Cityscapes and ADE20K, indicating reliable generalization to a variety of segmentation domains.
+We selected the SegFormer-B5 variant, which is the most powerful configuration of the architecture.
+Its deep encoder is particularly effective at capturing both fine-grained and large-scale features,
+making it well suited for complex segmentation tasks like deforestation mapping.
+In addition, SegFormer has demonstrated strong benchmark results on datasets such as Cityscapes and ADE20K,
+indicating reliable generalization to a variety of segmentation domains.
 
 ### TransUNet
 
@@ -384,22 +398,47 @@ and on the private leaderboard **0.5624**
 
 ## How do we interpret our results?
 
-SegFormer (full) showed solid and consistent performance, particularly on the plantation and mining classes. While it didn't outperform DeepLabV3+, it remained competitive and stable across all classes. Its weaker results on logging and grassland_shrubland mirror trends seen in other models, likely due to the subtle patterns in those categories.
-UNet and DeepLabV3+ served as reliable baselines, ViT proved the strongest pure‐transformer segmenter. TransUNet, despite its huge capacity struggled on raw outputs but recovered much of its performance after minimum‐area filtering. Finally, our ensemble variants combined these strengths to deliver the highest overall F1.
+SegFormer (full) showed solid and consistent performance, particularly on the plantation and mining classes.
+While it didn't outperform DeepLabV3+, it remained competitive and stable across all classes.
+Its weaker results on logging and grassland_shrubland mirror trends seen in other models,
+likely due to the subtle patterns in those categories.
+UNet and DeepLabV3+ served as reliable baselines, ViT proved the strongest pure‐transformer segmenter.
+TransUNet, despite its huge capacity struggled on raw outputs but recovered much of its performance after minimum‐area filtering.
+Finally, our ensemble variants combined these strengths to deliver the highest overall F1.
 
 ## Did we achieve our objectives?
 
-Despite its relatively lightweight architecture and removal of explicit positional encodings, SegFormer delivers competitive results while maintaining significantly lower training time than models like ViT and TransUNet as seen in Figure 9. This efficiency is largely due to its simplified decoder and hierarchical encoder design. Given its faster training and strong performance across classes, SegFormer offers an excellent trade-off between complexity and accuracy—outperforming several more resource-intensive models in practical terms.
+Despite its relatively lightweight architecture and removal of explicit positional encodings,
+SegFormer delivers competitive results while maintaining significantly lower training time than models like ViT and TransUNet as seen in Figure 9.
+This efficiency is largely due to its simplified decoder and hierarchical encoder design.
+Given its faster training and strong performance across classes,
+SegFormer offers an excellent trade-off between complexity and accuracy—outperforming several more resource-intensive models in practical terms.
 
 ## Why did the larger models perform worse then the smaller ones?
 
-Larger models like TransUNet and ViT underperformed compared to simpler architectures such as DeepLabV3+ and SegFormer. A key reason is underfitting—especially for TransUNet—which likely stems from limited data provided and insufficient training time to optimize such a complex architecture. TransUNet's low and unstable class-wise F1 scores indicate that it struggled to learn meaningful patterns from the dataset.
+Larger models like TransUNet and ViT underperformed compared to simpler architectures such as DeepLabV3+ and SegFormer.
+A key reason is underfitting—especially for TransUNet—which likely stems from limited data provided and insufficient training
+time to optimize such a complex architecture.
+TransUNet's low and unstable class-wise F1 scores indicate that it struggled to learn meaningful patterns from the dataset.
 
-These larger models also depend heavily on precise hyperparameter tuning and benefit from large-scale datasets, which we did not have. Additionally, transformer-heavy models lack built-in spatial priors, making them less suited for tasks like satellite image segmentation unless paired with extensive pretraining.
-Meanwhile, models like SegFormer and DeepLabV3+ balance capacity and efficiency well. They leverage inductive biases and hierarchical structures that are better aligned with the spatial nature of our task, allowing them to generalize more effectively with fewer resources.
+These larger models also depend heavily on precise hyperparameter tuning and benefit from large-scale datasets,
+which we did not have. Additionally, transformer-heavy models lack built-in spatial priors,
+making them less suited for tasks like satellite image segmentation unless paired with extensive pretraining.
+Meanwhile, models like SegFormer and DeepLabV3+ balance capacity and efficiency well.
+They leverage inductive biases and hierarchical structures that are better aligned with the spatial nature of our task,
+allowing them to generalize more effectively with fewer resources.
 
-Surprisingly our largest mode, TransUNet, underperformed the most in comparison to the other models. Huge models often “overfit” on limited data, since TransUNet need substantially more data to avoid overfitting, subsequently big networks are extremely sensitive to choices like learning-rate schedules and weight decay. Our relatively small, task-specific dataset simply wasn’t enough to fully train such a heavyweight model. As a result, TransUNet “memorized” noise instead of learning generalizable patterns, leading to its very low raw F1. TransUNet’s poor result, despite its ImageNet-21K pretraining, can be caused by a few missteps. The encoder was frozen for 15 epochs (versus just 5 for ViT), so its rich pretrained features potentially never properly adapted before the decoder learned to segment. 
-In hindsight, a more light unfreezing schedule, gentler learning-rate warmup, adjusted weight decay, larger effective batches, or extra regularization could help large models like TransUNet utilize their pretrained strengths. Unfortunately, time and compute limits kept us from fully exploring those avenues. 
+Surprisingly our largest mode, TransUNet, underperformed the most in comparison to the other models.
+Huge models often “overfit” on limited data, since TransUNet need substantially more data to avoid overfitting,
+subsequently big networks are extremely sensitive to choices like learning-rate schedules and weight decay.
+Our relatively small, task-specific dataset simply wasn’t enough to fully train such a heavyweight model.
+As a result, TransUNet “memorized” noise instead of learning generalizable patterns, leading to its very low raw F1.
+TransUNet’s poor result, despite its ImageNet-21K pretraining, can be caused by a few missteps.
+The encoder was frozen for 15 epochs (versus just 5 for ViT),
+so its rich pretrained features potentially never properly adapted before the decoder learned to segment. 
+In hindsight, a more light unfreezing schedule, gentler learning-rate warmup, adjusted weight decay,
+larger effective batches, or extra regularization could help large models like TransUNet utilize their pretrained strengths.
+Unfortunately, time and compute limits kept us from fully exploring those avenues. 
 
 
 
