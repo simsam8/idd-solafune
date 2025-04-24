@@ -239,12 +239,18 @@ We used pytorch lightning's built in batch gradient accumulation.
 
 ### Learning rate scheduler
 
+We use an AdamW optimizer with a cosine‐decay schedule, the learning rate starts at our base value and smoothly decays to zero over the full training run, with no explicit warmup period.
+The cosine curve ensures that the LR decreases gently at first and then more rapidly toward the end of training.
+
 ![Learning rate over time](./imgs/lr.png){width=60%}
 
 ### Channel input
 
+Each model is trained in two variants, one ingesting all 12 Sentinel-2 spectral bands and one using only the standard RGB channels, so we can measure the benefit of the extra multispectral information. 
+
 ### Frozen start
 
+We freeze the Transformer encoder for the first five epochs, while TransUnet uses 15 epochs updating only the new segmentation head before unfreezing the backbone for joint fine-tuning.
 
 ### Training process
 
