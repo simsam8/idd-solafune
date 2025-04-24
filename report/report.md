@@ -385,6 +385,7 @@ and on the private leaderboard **0.5624**
 ## How do we interpret our results?
 
 SegFormer (full) showed solid and consistent performance, particularly on the plantation and mining classes. While it didn't outperform DeepLabV3+, it remained competitive and stable across all classes. Its weaker results on logging and grassland_shrubland mirror trends seen in other models, likely due to the subtle patterns in those categories.
+UNet and DeepLabV3+ served as reliable baselines, ViT proved the strongest pure‐transformer segmenter. TransUNet, despite its huge capacity struggled on raw outputs but recovered much of its performance after minimum‐area filtering. Finally, our ensemble variants combined these strengths to deliver the highest overall F1.
 
 ## Did we achieve our objectives?
 
@@ -396,6 +397,10 @@ Larger models like TransUNet and ViT underperformed compared to simpler architec
 
 These larger models also depend heavily on precise hyperparameter tuning and benefit from large-scale datasets, which we did not have. Additionally, transformer-heavy models lack built-in spatial priors, making them less suited for tasks like satellite image segmentation unless paired with extensive pretraining.
 Meanwhile, models like SegFormer and DeepLabV3+ balance capacity and efficiency well. They leverage inductive biases and hierarchical structures that are better aligned with the spatial nature of our task, allowing them to generalize more effectively with fewer resources.
+
+Surprisingly our largest mode, TransUNet, underperformed the most in comparison to the other models. Huge models often “overfit” on limited data, since TransUNet need substantially more data to avoid overfitting, subsequently big networks are extremely sensitive to choices like learning-rate schedules and weight decay. Our relatively small, task-specific dataset simply wasn’t enough to fully train such a heavyweight model. As a result, TransUNet “memorized” noise instead of learning generalizable patterns, leading to its very low raw F1. TransUNet’s poor result, despite its ImageNet-21K pretraining, can be caused by a few missteps. The encoder was frozen for 15 epochs (versus just 5 for ViT), so its rich pretrained features potentially never properly adapted before the decoder learned to segment. 
+In hindsight, a more light unfreezing schedule, gentler learning-rate warmup, adjusted weight decay, larger effective batches, or extra regularization could help large models like TransUNet utilize their pretrained strengths. Unfortunately, time and compute limits kept us from fully exploring those avenues. 
+
 
 
 <!--Ignore TODO-->
