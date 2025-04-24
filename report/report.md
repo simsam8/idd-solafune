@@ -98,7 +98,22 @@ their respective papers and source code.
 
 ### Vision Transformer (ViT)
 
-[@dosovitskiy2020vit]
+#### Vision Transformer
+
+The Vision Transformer (ViT) model treats an image as a sequence of fixed-sized patches and processes them with a standard Transformer encoder, rather than convolutional inductive biases to learn long-range dependencies in the data it relies on self-attention. 
+
+#### Model Architecture
+
+The Vision Transformer breaks an image into fixed size patches, linearly embeds each patch (plus a learnable class token and positional embeddings) into vectors. The result of this is then feed as sequence through standard Transformer encoder layers that contains multi-head self-attention followed by feed-forward networks, using the final class token as representation for prediction.
+
+#### Implementation 
+
+In our ViT implementation we started from the torchvision ViT-B/16 model pretrained on ImageNet [@dosovitskiy2020vit] swapped its first layer to accept all 12 Sentinel-2 bands, resized its built-in positional embeddings to our 1024×1024 image grid, and replaced the classification head with a lightweight segmentation head for four land-use classes. The transformer backbone remained frozen, and only the new segmentation head was trained on our data.
+
+#### Why Vision Transformer
+
+Based on [@dosovitskiy2020vit] the ViT applies a pure Transformer to image patches and, with large-scale pre-training, matches or exceeds CNNs on vision benchmarks. Since our task requires capturing long-range, multispectral context in high-resolution satellite imagery, we wanted to see if ViT could similarly improve segmentation performance.
+
 
 ### Segformer
 
