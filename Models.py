@@ -8,22 +8,6 @@ from trans_unet.model import TransUNet
 from vision_transformer.model import ViTSegmentation
 
 
-# class ComboLoss(nn.Module):
-#     def __init__(self, smooth=1e-5):
-#         super().__init__()
-#         self.bce = nn.BCEWithLogitsLoss()
-#         self.smooth = smooth
-#
-#     def forward(self, logits, targets):
-#         bce_loss = self.bce(logits, targets)
-#         probs = torch.sigmoid(logits)
-#         num = 2 * (probs * targets).sum(dim=(2, 3))
-#         den = (probs + targets).sum(dim=(2, 3))
-#         dice = (num + self.smooth) / (den + self.smooth)
-#         dice_loss = 1 - dice.mean()
-#         return 0.5 * bce_loss + 0.5 * dice_loss
-
-
 class Model(pl.LightningModule):
     def __init__(self, config, epochs):
         super().__init__()
@@ -49,11 +33,6 @@ class Model(pl.LightningModule):
             mode=smp.losses.MULTILABEL_MODE, from_logits=True
         )
         self.bce_loss_fn = smp.losses.SoftBCEWithLogitsLoss(smooth_factor=0.0)
-
-        # # Loss
-        # self.loss_fn = ComboLoss()
-        # # Metric
-        # self.val_f1 = MultilabelF1Score(num_labels=4, average='macro')
 
         self.training_step_outputs = []
         self.validation_step_outputs = []
@@ -114,11 +93,9 @@ class Model(pl.LightningModule):
         def log(name, tensor, prog_bar=False):
             self.log(
                 f"{stage}/{name}",
-                # tensor.to(self.device),
                 tensor.detach().cpu(),
                 sync_dist=True,
                 prog_bar=prog_bar,
-                # on_epoch=True,
             )
 
         # aggregate tp, fp, fn, tn to compose F1 score for each class
