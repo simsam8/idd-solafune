@@ -1,6 +1,6 @@
 ---
 documentclass: nldl
-classoption: review
+classoption: final
 title: Applied Segmentation Models for Identifying Deforestation Drivers
 bibliography: ./references.bib
 header-includes: |
