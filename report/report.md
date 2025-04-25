@@ -143,7 +143,7 @@ Since our task requires capturing long-range,
 multispectral context in high-resolution satellite imagery,
 we wanted to see if ViT could similarly improve segmentation performance.
 
-![Vision Transformer Architecture [@dosovitskiy2020vit]\label{vit}](../vision_transformer/vitimg.png)
+![Vision Transformer Architecture [@dosovitskiy2020vit]\label{vit}](../vision_transformer/vitimg.png){width=80%}
 
 ### Segformer
 
@@ -173,7 +173,7 @@ making it well suited for complex segmentation tasks like deforestation mapping.
 In addition, SegFormer has demonstrated strong benchmark results on datasets such as Cityscapes and ADE20K,
 indicating reliable generalization to a variety of segmentation domains.
 
-![Segformer architecture [@xie2021segformer]\label{segformer_arch}](./imgs/segformer_arch.png)
+![Segformer architecture [@xie2021segformer]\label{segformer_arch}](./imgs/segformer_arch.png){width=80%}
 
 ### TransUNet
 
@@ -206,7 +206,7 @@ segmentation. Since we use UNet as one of our baseline models, we were intereste
 to see if we could get similar results for our task.
 
 
-![TransUNet architecture [@chen2021transunet]\label{transunet_arch}](../trans_unet/img/transunet.png)
+![TransUNet architecture [@chen2021transunet]\label{transunet_arch}](../trans_unet/img/transunet.png){width=80%}
 
 ## Ensemble models
 
@@ -373,7 +373,7 @@ models require only about one-third of the time training of the largest models
 TransUNet and ViT. Table \ref{min_area_f1} shows only a marginal increase in performance.
 
 \begin{table}[!ht]
-\resizebox{6cm}{!}{
+\resizebox{5cm}{!}{
     \centering
     \begin{tabular}{lll}
     \hline
