@@ -17,4 +17,4 @@ Dosovitsky et al. (2021) describes that ViT “interprets an image as a sequence
 While the absence of built-in priors makes ViT more data hungry and initially harder to train, it also allows the model to learn global relationships that may be advantageous for complex scenes. In the context of deforestation driver segmentation, global context (e.g. patterns of agriculture fields or plantations) and multi-spectral relationships might be better captured through the ViT’s self-attention mechanism spanning the entire image. 
 As reported in the paper the ViT had promising results, with sufficient pre-training, a pure transformer can attain state-of-the-art image recognition performance. The authors explicitly pointed the promises of applying ViT to dense prediction tasks like segmentation. Our work extends this idea by testing ViT on a high-resolution segmentation problem. 
 
-![image](https://github.com/user-attachments/assets/f83264a4-5695-40d8-a5b0-51c33e758fe9)
+![image](vitimg.png)
