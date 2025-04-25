@@ -129,6 +129,7 @@ Since our task requires capturing long-range,
 multispectral context in high-resolution satellite imagery,
 we wanted to see if ViT could similarly improve segmentation performance.
 
+![Image](vitimg.png)
 
 ### Segformer
 
@@ -403,7 +404,7 @@ TransUNet, despite its huge capacity struggled on raw outputs but recovered much
 Surprisingly our largest mode, TransUNet, underperformed the most in comparison to the other models.
 Huge models often “overfit” on limited data, since TransUNet need substantially more data to avoid overfitting,
 subsequently big networks are extremely sensitive to choices like learning-rate schedules and weight decay.
-Our relatively small, task-specific dataset insufficient to fully train such a heavyweight model.
+Our relatively small, task-specific dataset, is insufficient to fully train such a heavyweight model.
 As a result, TransUNet “memorized” noise instead of learning generalizable patterns, leading to its very low raw F1.
 
 TransUNet’s poor result, despite its ImageNet-21K pretraining, can be caused by a few missteps.
