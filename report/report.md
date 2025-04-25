@@ -28,10 +28,6 @@ header-includes: |
       citecolor = NavyBlue,
       urlcolor  = Magenta!80!black,
     }
-    \author[1]{Simon Vedaa}
-    \author[1]{Khalil Ibrahim}
-    \author[1]{Safiya Mahamood}
-    \affil[1]{University of Bergen}
 ---
 
 # Abstract

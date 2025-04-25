@@ -67,7 +67,12 @@
       \vspace*{10pt}
       {\Large \bf \@title\par}
       \vspace*{24pt}
-      \iffinal\@author\else%
+      \iffinal
+        Simon Vedaa, Khalil Ibrahim, and Safiya Mahamood
+        \vspace*{5pt}
+        \newline
+        University of Bergen
+      \else%
       Anonymous \@type\\
       Submission~\@paperID \fi
   \end{tcolorbox}
