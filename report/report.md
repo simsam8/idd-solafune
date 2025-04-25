@@ -129,7 +129,7 @@ Since our task requires capturing long-range,
 multispectral context in high-resolution satellite imagery,
 we wanted to see if ViT could similarly improve segmentation performance.
 
-![Image](vitimg.png)
+![Image](../vision_transformer/vitimg.png)
 
 ### Segformer
 
