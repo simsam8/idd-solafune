@@ -36,10 +36,10 @@ header-includes: |
 
 # Abstract
 
-We evaluate several state-of-the-art semantic-segmentation architectures on a
-deforestation-driver mapping challenge hosted by Solafune.
-Our pipeline applies standard four-channel tensor conversion of annotated polygons,
-extensive geometric and photometric augmentations,
+We evaluate several semantic-segmentation architectures on a
+deforestation-driver machine learning competition hosted by Solafune.
+Our pipeline applies a conversion of annotated polygons into tensor masks,
+standard image augmentations,
 and a minimum-area filter in post-processing.
 We compare UNet, DeepLabV3+, SegFormer, Vision Transformer (ViT), TransUNet,
 and two ensemble variants in terms of segmentation accuracy (pixel-wise F1) and computational cost.
@@ -78,7 +78,7 @@ on a deforestation segmentation task, and comparing their performance.
 
 Our entire pipeline is based upon a GitHub repository made by motokimura.[^2]
 We have made a couple of modifications to the training and evaluation pipeline,
-but the pre- and post-processing steps remain mainly unchanged.
+but the pre- and post-processing steps remain mostly unchanged.
 
 [^2]: [Baseline pipeline by motokimura](https://github.com/motokimura/solafune_deforestation_baseline)
 
@@ -116,24 +116,22 @@ fixed-sized patches and processes them with a standard Transformer encoder.
 It relies on self-attention instead of convolutional inductive biases
 to learn long-range dependencies.
 
-#### ViT Architecture
+#### ViT architecture
 
 The Vision Transformer breaks an image into fixed size patches,
 linearly embeds each patch (plus a learnable class token and positional embeddings) into vectors.
-The result of this is then fed as sequence through standard Transformer
+The result of this is then fed as a sequence through standard Transformer
 encoder layers that contains multi-head self-attention followed by
 feed-forward networks, using the final class token as representation for prediction.
 Its architecture can be seen in Figure \ref{vit}
 
-#### ViT Implementation 
+#### ViT implementation 
 
 In our ViT implementation we started from the torchvision ViT-B/16
 model pretrained on ImageNet [@dosovitskiy2020vit] swapped its first layer
 to accept all 12 Sentinel-2 bands, resized its built-in positional embeddings
 to our 1024×1024 image grid, and replaced the classification head with
-a lightweight segmentation head for four land-use classes.
-The transformer backbone remained frozen,
-and only the new segmentation head was trained on our data.
+a lightweight segmentation head for four classes.
 
 #### Why ViT?
 
@@ -177,7 +175,7 @@ indicating reliable generalization to a variety of segmentation domains.
 
 ### TransUNet
 
-#### TransUNet Architecture 
+#### TransUNet architecture 
 
 TransUNet is very similar to its predecessor UNet.
 It consists of an encoder and decoder architecture,
@@ -190,10 +188,10 @@ convolutional blocks.
 The decoder also uses skip connections from the CNN encoder,
 passing them into the first convolutional block at each upsampling stage.
 
-#### TransUNet Implementation
+#### TransUNet implementation
 
 In our implementation we use ResNet50-VisionTransformer for the hybrid encoder,
-using pre-trained weights loaded from the `timm` library.
+using pre-trained weights loaded from the `timm` library [@rw2019timm].
 We implement the base version of TransUNet as they do in [@chen2021transunet].
 Because our inputs have three or more channels, we replaced the ResNet encoder's 
 first convolutional layer; the rest of the hybrid encoder remained unchanged.
@@ -241,7 +239,7 @@ As some of the models are quite large, and we have limited resources,
 we decided to use batch gradient accumulation.
 Instead of using larger batches, we use smaller $k$ batches 
 and accumulate the gradients of $N$ total batches before the backward pass. 
-The effective batch size then becomes $k*N$. All models are trained 
+The effective batch size then becomes $k\times N$. All models are trained 
 on an effective batch size of either 15 or 16.
 We used pytorch lightning's built in batch gradient accumulation.
 Batch sizes and accumulation steps are tuned based on each model's computational cost
@@ -258,7 +256,7 @@ at first and then more rapidly toward the end of training.
 
 ### Channel input
 
-Each model is trained in two variants, one ingesting all 12
+Each model is trained in two variants, one using all 12
 Sentinel-2 spectral bands and one using only the standard RGB channels,
 so we can measure the benefit of the extra multispectral information. 
 
@@ -291,6 +289,14 @@ Adding a minimum-area filter on the predicted masks,
 substantially improves model performance, as seen in Table \ref{min_area_f1}.
 Notably, this more than doubled TransUNet's F1 score.
 
+
+## Effect of channels
+
+Models trained on all channels perform marginally better than their RGB-only counterparts.
+When looking at Figure \ref{full} and Figure \ref{rgb}, both produce
+similar segmentations, but the RGB-only models generate noticeably more false positives
+(especially in the final row).
+
 \begin{table}[!ht]
 \resizebox{6cm}{!}{
     \centering
@@ -316,13 +322,6 @@ Notably, this more than doubled TransUNet's F1 score.
     \caption{Validation f1 scores with and without Minimum Area of 10k(pixels)}
     \label{min_area_f1}
 \end{table}
-
-## Effect of channels
-
-Models trained on all channels perform marginally better than their RGB-only counterparts.
-When looking at Figure \ref{full} and Figure \ref{rgb}, both produce
-similar segmentations, but the RGB-only models generate noticeably more false positives
-(especially in the final row).
 
 ![Segmentations using all channels\label{full}](./imgs/val_preds_full.png){width=90%}
 
@@ -414,7 +413,7 @@ Because we did not check for class imbalance, we cannot definitively pinpoint th
 UNet and DeepLabV3+ served as reliable baselines, ViT proved the strongest pure‐transformer segmenter.
 TransUNet, despite its huge capacity struggled on raw outputs but recovered much of its performance after minimum-area filtering.
 
-Surprisingly our largest mode, TransUNet, underperformed the most in comparison to the other models.
+Surprisingly our largest model, TransUNet, underperformed the most in comparison to the other models.
 Huge models often “overfit” on limited data, since TransUNet need substantially more data to avoid overfitting,
 subsequently big networks are extremely sensitive to choices like learning-rate schedules and weight decay.
 Our relatively small, task-specific dataset, is insufficient to fully train such a heavyweight model.
