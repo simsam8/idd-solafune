@@ -153,11 +153,7 @@ In our project, we included SegFormer as one of the core models to evaluate its 
 
 #### Segformer architecture
 
-SegFormer consists of two main components: the Mix Transformer (MiT) encoder and a lightweight MLP-based decoder.
-The encoder is optimized for visual tasks
-using overlapping patch embeddings and a hierarchical structure to effectively capture both local and global image features.
-Unlike traditional Vision Transformers, SegFormer replaces explicit positional encodings with Mix-FFN modules,
-improving robustness to varying input resolutions.
+SegFormer consists of two main components (Figure \ref{segformer_arch}): the Mix Transformer (MiT) encoder and a lightweight MLP-based decoder. The encoder is optimized for visual tasks, using overlapping patch embeddings and a hierarchical structure to effectively capture both local and global image features. Unlike traditional Vision Transformers, SegFormer replaces explicit positional encodings with Mix-FFN modules, improving robustness to varying input resolutions.
 
 The decoder is composed entirely of Multi-Layer Perceptrons (MLPs),
 which aggregate multi-scale features from the encoder.
@@ -176,6 +172,8 @@ Its deep encoder is particularly effective at capturing both fine-grained and la
 making it well suited for complex segmentation tasks like deforestation mapping.
 In addition, SegFormer has demonstrated strong benchmark results on datasets such as Cityscapes and ADE20K,
 indicating reliable generalization to a variety of segmentation domains.
+
+![Segformer architecture [@xie2021segformer]\label{segformer_arch}](./imgs/segformer_arch.png)
 
 ### TransUNet
 
