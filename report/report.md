@@ -35,7 +35,20 @@ header-includes: |
 ---
 
 # Abstract
-Add abstract when all other sections are complete.
+
+We evaluate several state-of-the-art semantic-segmentation architectures on a
+deforestation-driver mapping challenge hosted by Solafune.
+Our pipeline applies standard four-channel tensor conversion of annotated polygons,
+extensive geometric and photometric augmentations,
+and a minimum-area filter in post-processing.
+We compare UNet, DeepLabV3+, SegFormer, Vision Transformer (ViT), TransUNet,
+and two ensemble variants in terms of segmentation accuracy (pixel-wise F1) and computational cost.
+DeepLabV3+ trained on all 12 Sentinel-2 bands achieved the highest validation F1 (0.7367)
+and earned 0.5851 and 0.5624 on the public and private leaderboards, respectively.
+Contrary to expectations, larger architectures did not outperform smaller ones under
+our resource constraints. We analyze this behavior, attribute it to overfitting and 
+limited fine-tuning of huge backbones,
+and discuss how more extensive tuning and data could better realize their potential.
 
 # Introduction
 
@@ -259,7 +272,8 @@ head before unfreezing the backbone for joint fine-tuning.
 ### Training process
 
 We train each model for 200 epochs, evaluating on the validation set 
-every five epochs. The final version of the model we keep, 
+every five epochs. We use a 80/20 split for training and validation sets.
+The final version of the model we keep, 
 is the one that achieves the highest f1 score throughout training.
 
 ### Model selection
