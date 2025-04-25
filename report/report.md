@@ -116,15 +116,16 @@ fixed-sized patches and processes them with a standard Transformer encoder.
 It relies on self-attention instead of convolutional inductive biases
 to learn long-range dependencies.
 
-#### Model Architecture
+#### ViT Architecture
 
 The Vision Transformer breaks an image into fixed size patches,
 linearly embeds each patch (plus a learnable class token and positional embeddings) into vectors.
 The result of this is then fed as sequence through standard Transformer
 encoder layers that contains multi-head self-attention followed by
 feed-forward networks, using the final class token as representation for prediction.
+Its architecture can be seen in Figure \ref{vit}
 
-#### Implementation 
+#### ViT Implementation 
 
 In our ViT implementation we started from the torchvision ViT-B/16
 model pretrained on ImageNet [@dosovitskiy2020vit] swapped its first layer
@@ -134,7 +135,7 @@ a lightweight segmentation head for four land-use classes.
 The transformer backbone remained frozen,
 and only the new segmentation head was trained on our data.
 
-#### Why Vision Transformer
+#### Why ViT?
 
 Based on [@dosovitskiy2020vit] the ViT applies a pure Transformer to image patches and,
 with large-scale pre-training, matches or exceeds CNNs on vision benchmarks.
@@ -142,7 +143,7 @@ Since our task requires capturing long-range,
 multispectral context in high-resolution satellite imagery,
 we wanted to see if ViT could similarly improve segmentation performance.
 
-![Image](../vision_transformer/vitimg.png)
+![Vision Transformer Architecture [@dosovitskiy2020vit]\label{vit}](../vision_transformer/vitimg.png)
 
 ### Segformer
 
@@ -150,7 +151,7 @@ SegFormer [@xie2021segformer] is a transformer-based architecture designed for e
 It combines the strengths of hierarchical representations from convolutional networks with the global context modeling of transformers.
 In our project, we included SegFormer as one of the core models to evaluate its ability to identify deforestation drivers in satellite imagery.
 
-#### Model architecture
+#### Segformer architecture
 
 SegFormer consists of two main components: the Mix Transformer (MiT) encoder and a lightweight MLP-based decoder.
 The encoder is optimized for visual tasks
@@ -162,7 +163,7 @@ The decoder is composed entirely of Multi-Layer Perceptrons (MLPs),
 which aggregate multi-scale features from the encoder.
 This design keeps the decoder lightweight while maintaining strong segmentation performance.
 
-#### Implementation
+#### Segformer implementation
 
 We used the implementation of SegFormer provided by the *segmentation_models* library [@Iakubovskii:2019],
 which integrates smoothly with PyTorch and supports modular experimentation.
@@ -178,7 +179,7 @@ indicating reliable generalization to a variety of segmentation domains.
 
 ### TransUNet
 
-#### Architecture 
+#### TransUNet Architecture 
 
 TransUNet is very similar to its predecessor UNet.
 It consists of an encoder and decoder architecture,
@@ -191,7 +192,7 @@ convolutional blocks.
 The decoder also uses skip connections from the CNN encoder,
 passing them into the first convolutional block at each upsampling stage.
 
-#### Implementation
+#### TransUNet Implementation
 
 In our implementation we use ResNet50-VisionTransformer for the hybrid encoder,
 using pre-trained weights loaded from the `timm` library.
@@ -200,7 +201,7 @@ Because our inputs have three or more channels, we replaced the ResNet encoder's
 first convolutional layer; the rest of the hybrid encoder remained unchanged.
 
 
-#### Motivation
+#### Why TransUNet?
 
 According to [@chen2021transunet], TransUNet is an improvement to UNet for the task of medical image 
 segmentation. Since we use UNet as one of our baseline models, we were interested 
