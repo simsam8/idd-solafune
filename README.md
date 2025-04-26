@@ -2,11 +2,11 @@
 
 ## Description
 
-The goal of this competition is to identify, segment, and classify deforestation drives 
-from sattelite images. For the competition the following four classes of deforestation are 
-as followed; grassland/shrubland, logging, mining, and plantation.
+The goal of this competition is to identify, segment, and classify deforestation drivers 
+from satellite images. For the competition, the following four classes of deforestation are 
+as follows; grassland/shrubland, logging, mining, and plantation.
 
-The dataset consists of sattelite images from the Sentinel-2 dataset, 
+The dataset consists of satellite images from the Sentinel-2 dataset, 
 where each image contains 12 bands.
 
 Link to competition: [here](https://solafune.com/competitions/68ad4759-4686-4bb3-94b8-7063f755b43d?menu=about&tab=)
@@ -25,11 +25,11 @@ Run: `uv sync`, to install all dependencies.
 
 ### Training
 
-To train a model run the following command:
+To train a model, run the following command:
 
 `python train.py --epochs 3 --config unet`
 
-available configs:
+Available configs:
 - unet
 - deeplab
 - segformer
@@ -57,7 +57,7 @@ The submission is stored in `data/submission.json`
 
 ## File structure
 
-- [`Models.py`](./Models.py): Pytorch Lightning module containing training, validation and testing loop/logic.
+- [`Models.py`](./Models.py): Pytorch Lightning module containing training, validation, and testing loop/logic.
 - [`train.py`](./train.py): Script for training models.
 - [`eval.py`](./eval.py): Script for model selection and creating competition submission.
 - [`utils.py`](./utils.py): Contains various utility functions.
