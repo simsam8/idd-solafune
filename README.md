@@ -68,9 +68,9 @@ The submission is stored in `data/submission.json`
 - [`visualization.ipynb`](./visualization.ipynb): Notebook for creating visualization of predictions.
 - [`graphs.ipynb`](./graphs.ipynb): Notebook for plotting training and validation metrics.
 - [`report/`](./report/README.md): Contains the final report and all files and scripts to generate it.
-- [`trans_unet/`](./trans_unet/README.md): Contains all code and documentation for our implementation of TransUNet.
-- [`vision_transformer/`](./vision_transformer/README.md): Contains all code and documentation for our implementation of Vision Transformer.
-- [`segformer/`](./segformer/README.md): Documentation of our usage of Segformer.
+- [`trans_unet/`](./trans_unet/): Contains all code and documentation for our implementation of TransUNet.
+- [`vision_transformer/`](./vision_transformer/): Contains all code and documentation for our implementation of Vision Transformer.
+- [`segformer/`](./segformer/): Documentation of our usage of Segformer.
 
 # Credits
 
