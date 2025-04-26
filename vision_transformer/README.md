@@ -1,6 +1,6 @@
 # VisionTransformer
 
-Implementor: [Safiya Mahamood](https://github.com/SafiyaMah)
+Implementer: [Safiya Mahamood](https://github.com/SafiyaMah)
 
 ## Description
 

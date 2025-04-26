@@ -1,6 +1,6 @@
 # Segformer 
 
-Implementor: [Khalil Ibrahim](https://github.com/KhalilIbrahimm)
+Implementer: [Khalil Ibrahim](https://github.com/KhalilIbrahimm)
 
 ## Description
 
