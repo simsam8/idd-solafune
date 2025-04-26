@@ -11,6 +11,10 @@ where each image contains 12 bands.
 
 Link to competition: [here](https://solafune.com/competitions/68ad4759-4686-4bb3-94b8-7063f755b43d?menu=about&tab=)
 
+Our report can be found [here](./report/report.pdf).
+
+Made by: [Simon Vedaa](https://github.com/simsam8), [Khalil Ibrahim](https://github.com/KhalilIbrahimm), and [Safiya Mahamood](https://github.com/SafiyaMah)
+
 ## Setup environment
 
 Make sure [uv](https://github.com/astral-sh/uv) is installed.
@@ -53,20 +57,20 @@ The submission is stored in `data/submission.json`
 
 ## File structure
 
-- `Models.py`: Pytorch Lightning module containing training, validation and testing loop/logic.
-- `train.py`: Script for training models.
-- `eval.py`: Script for model selection and creating competition submission.
-- `utils.py`: Contains various utility functions.
-- `ensemble.py`: Module for creating ensemble models.
-- `datasets.py`: Module for defining dataset and Datamodule used in `Models.py`
-- `configs.py`: Contains configurations for the models.
-- `generate_masks.py`: Script for generating segmentation masks/labels from competition data.
-- `visualization.ipynb`: Notebook for creating visualization of predictions.
-- `graphs.ipynb`: Notebook for plotting training and validation metrics.
-- `report/`: Contains the final report and all files and scripts to generate it.
-- `trans_unet/`: Contains all code and documentation for our implementation of TransUNet.
-- `vision_transformer/`: Contains all code and documentation for our implementation of Vision Transformer.
-- `segformer/`: Documentation of our usage of Segformer.
+- [`Models.py`](./Models.py): Pytorch Lightning module containing training, validation and testing loop/logic.
+- [`train.py`](./train.py): Script for training models.
+- [`eval.py`](./eval.py): Script for model selection and creating competition submission.
+- [`utils.py`](./utils.py): Contains various utility functions.
+- [`ensemble.py`](./ensemble.py): Module for creating ensemble models.
+- [`datasets.py`](./datasets.py): Module for defining dataset and Datamodule used in `Models.py`
+- [`configs.py`](./configs.py): Contains configurations for the models.
+- [`generate_masks.py`](./generate_masks.py): Script for generating segmentation masks/labels from competition data.
+- [`visualization.ipynb`](./visualization.ipynb): Notebook for creating visualization of predictions.
+- [`graphs.ipynb`](./graphs.ipynb): Notebook for plotting training and validation metrics.
+- [`report/`](./report/README.md): Contains the final report and all files and scripts to generate it.
+- [`trans_unet/`](./trans_unet/README.md): Contains all code and documentation for our implementation of TransUNet.
+- [`vision_transformer/`](./vision_transformer/README.md): Contains all code and documentation for our implementation of Vision Transformer.
+- [`segformer/`](./segformer/README.md): Documentation of our usage of Segformer.
 
 # Credits
 

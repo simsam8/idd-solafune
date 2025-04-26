@@ -1,5 +1,7 @@
 # VisionTransformer
 
+Implementor: [Safiya Mahamood](https://github.com/SafiyaMah)
+
 ## Description
 
 We trained a semantic segmentation model based on the Vision Transformer (ViT) approach, specifically the ViT-B/16 variant, adapted from the paper “An Image is Worth 16x16 Words” by Dosovitskiy et al. While the original work was designed for image classification, we modified the architecture for segmentation tasks.

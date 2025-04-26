@@ -1,3 +1,8 @@
+# Segformer 
+
+Implementor: [Khalil Ibrahim](https://github.com/KhalilIbrahimm)
+
+## Description
 
 SegFormer [@xie2021segformer] is a powerful semantic segmentation model that combines the strengths of hierarchical Transformer-based encoders with lightweight MLP decoders. It provides excellent performance across a wide range of segmentation tasks while maintaining computational efficiency.
 For this project, SegFormer was implemented through the segmentation_models.pytorch library, which offers ready-to-use, modular segmentation architectures. The encoder-decoder architecture, training pipeline, and model configuration were adapted for the Solafune dataset.

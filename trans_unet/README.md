@@ -1,5 +1,7 @@
 # TransUNet
 
+Implementor: [Simon Vedaa](https://github.com/simsam8)
+
 ## Description
 
 The implementation of the TransUNet architecture is as followed:
